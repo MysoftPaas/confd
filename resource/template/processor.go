@@ -121,11 +121,11 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	}
 
 	if len(paths) < 1 {
-		log.Warning("Found no templates")
+		log.Warning("Found no projects")
 	}
 
 	for _, p := range paths {
-		log.Debug(fmt.Sprintf("Found template: %s", p))
+		log.Debug(fmt.Sprintf("Found project: %s", p))
 		t, err := NewTemplateResource(p, config)
 		if err != nil {
 			lastError = err
