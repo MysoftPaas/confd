@@ -1,60 +1,92 @@
 package project
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/prometheus/common/log"
+	"github.com/BurntSushi/toml"
+	"github.com/kelseyhightower/confd/log"
 )
 
 type ProjectConfig struct {
-	Name    string
-	ConfDir string
+	ProjectProperty Project `toml:"project"`
 }
 
-func TemplateToProject(path string, config Config) (*TemplateResource, error) {
-	if config.StoreClient == nil {
-		return nil, errors.New("A valid StoreClient is required.")
-	}
+type Project struct {
+	//name of project
+	Name string
+	//directory of config
+	ConfDir string `toml:"conf_dir"`
+}
 
-	// Set the default uid and gid so we can determine if it was
-	// unset from configuration.
-	tc := &ProjectConfig{TemplateResource{Uid: -1, Gid: -1}}
+func templateToProject(filePath string) (*Project, error) {
 
-	log.Debug("Loading template resource from " + path)
-	_, err := toml.DecodeFile(path, &tc)
+	var projConfig ProjectConfig
+
+	log.Debug("Loading project from " + filePath)
+	_, err := toml.DecodeFile(filePath, &projConfig)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot process template resource %s - %s", path, err.Error())
+		return nil, fmt.Errorf("Cannot process project %s - %s", filePath, err.Error())
 	}
 
-	tr := tc.TemplateResource
-	tr.keepStageFile = config.KeepStageFile
-	tr.noop = config.Noop
-	tr.storeClient = config.StoreClient
-	tr.funcMap = newFuncMap()
-	tr.store = memkv.New()
-	tr.syncOnly = config.SyncOnly
-	addFuncs(tr.funcMap, tr.store.FuncMap)
+	return &projConfig.ProjectProperty, nil
+}
 
-	if config.Prefix != "" {
-		tr.Prefix = config.Prefix
-	}
-	tr.Prefix = filepath.Join("/", tr.Prefix)
+//load projects from confd.confDir
+func LoadProjects(path string) ([]*Project, error) {
 
-	if tr.Src == "" {
-		return nil, ErrEmptySrc
+	log.Debug("Loading projects from " + path)
+
+	projects := make([]*Project, 0)
+	if _, err := os.Stat(path); err != nil {
+		fmt.Errorf("Cannot find path %s", path)
 	}
 
-	if tr.Uid == -1 {
-		tr.Uid = os.Geteuid()
+	paths, err := recursiveFindFiles(path, "*toml")
+	if err != nil {
+		return nil, err
 	}
 
-	if tr.Gid == -1 {
-		tr.Gid = os.Getegid()
+	if len(paths) < 1 {
+		log.Warning("Found no templates")
 	}
 
-	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
-	return &tr, nil
+	var lastError error
+	for _, p := range paths {
+		log.Debug(fmt.Sprintf("Found project: %s", p))
+		t, err := templateToProject(p)
+		if err != nil {
+			lastError = err
+			continue
+		}
+		if t.ConfDir != "" {
+			projects = append(projects, t)
+		} else {
+			log.Warning(fmt.Sprintf("file: %s,with empty ConfDir", p))
+		}
+	}
+	return projects, lastError
+}
+
+// recursiveFindFiles find files with pattern in the root with depth.
+func recursiveFindFiles(root string, pattern string) ([]string, error) {
+	files := make([]string, 0)
+	findfile := func(path string, f os.FileInfo, err error) (inner error) {
+		if err != nil {
+			return
+		}
+		if f.IsDir() {
+			return
+		} else if match, innerr := filepath.Match(pattern, f.Name()); innerr == nil && match {
+			files = append(files, path)
+		}
+		return
+	}
+	err := filepath.Walk(root, findfile)
+	if len(files) == 0 {
+		return files, err
+	} else {
+		return files, err
+	}
 }

@@ -1,44 +1,36 @@
 # confd
 
-[![Build Status](https://travis-ci.org/kelseyhightower/confd.svg?branch=master)](https://travis-ci.org/kelseyhightower/confd)
+- useage 
 
-`confd` is a lightweight configuration management tool focused on:
+./confd -backend redis -interval 5 -confdir /etc/confd
 
-* keeping local configuration files up-to-date using data stored in [etcd](https://github.com/coreos/etcd),
-  [consul](http://consul.io), [dynamodb](http://aws.amazon.com/dynamodb/), [redis](http://redis.io),
-  [vault](https://vaultproject.io), [zookeeper](https://zookeeper.apache.org) or env vars and processing [template resources](docs/template-resources.md).
-* reloading applications to pick up new config file changes
+## Changes
 
-## Community
-
-* IRC: `#confd` on Freenode
-* Mailing list: [Google Groups](https://groups.google.com/forum/#!forum/confd-users)
-* Website: [www.confd.io](http://www.confd.io)
-
-## Building
-
-Go 1.6 is required to build confd, which uses the new vendor directory.
+- /etc/confd/
 
 ```
-$ mkdir -p $GOPATH/src/github.com/kelseyhightower
-$ git clone https://github.com/kelseyhightower/confd.git $GOPATH/src/github.com/kelseyhightower/confd
-$ cd $GOPATH/src/github.com/kelseyhightower/confd
-$ ./build
-```
-
-You should now have confd in your `bin/` directory:
+├── /etc/confd  
+│   ├── app1.toml  
+│   ├── app2.toml  
+│   ├── app3.toml  
+│   ├── ...  
 
 ```
-$ ls bin/
-confd
+
+- app1.toml
+
+```
+[project]
+name = appcloud
+conf_dir = /opt/www/appcloud/protected/config/confd/
+
 ```
 
-## Getting Started
+- structure of conf_dir
 
-Before we begin be sure to [download and install confd](docs/installation.md).
-
-* [quick start guide](docs/quick-start-guide.md)
-
-## Next steps
-
-Check out the [docs directory](docs) for more docs.
+```
+│   ├── conf.d/  
+│   │   └── web.toml  
+│   └── templates/  
+│       └── web.tmpl  
+```

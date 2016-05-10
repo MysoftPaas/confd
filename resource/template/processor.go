@@ -32,26 +32,29 @@ func process(ts []*TemplateResource) error {
 }
 
 type intervalProcessor struct {
-	config   Config
+	configs  []Config
 	stopChan chan bool
 	doneChan chan bool
 	errChan  chan error
 	interval int
 }
 
-func IntervalProcessor(config Config, stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
-	return &intervalProcessor{config, stopChan, doneChan, errChan, interval}
+func IntervalProcessor(configs []Config, stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
+	return &intervalProcessor{configs, stopChan, doneChan, errChan, interval}
 }
 
 func (p *intervalProcessor) Process() {
 	defer close(p.doneChan)
 	for {
-		ts, err := getTemplateResources(p.config)
-		if err != nil {
-			log.Fatal(err.Error())
-			break
+
+		for _, config := range p.configs {
+			ts, err := getTemplateResources(config)
+			if err != nil {
+				log.Warning("resource parse failure: %s", err.Error())
+				continue
+			}
+			process(ts)
 		}
-		process(ts)
 		select {
 		case <-p.stopChan:
 			break
@@ -62,24 +65,29 @@ func (p *intervalProcessor) Process() {
 }
 
 type watchProcessor struct {
-	config   Config
+	configs  []Config
 	stopChan chan bool
 	doneChan chan bool
 	errChan  chan error
 	wg       sync.WaitGroup
 }
 
-func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan error) Processor {
+func WatchProcessor(configs []Config, stopChan, doneChan chan bool, errChan chan error) Processor {
 	var wg sync.WaitGroup
-	return &watchProcessor{config, stopChan, doneChan, errChan, wg}
+	return &watchProcessor{configs, stopChan, doneChan, errChan, wg}
 }
 
 func (p *watchProcessor) Process() {
 	defer close(p.doneChan)
-	ts, err := getTemplateResources(p.config)
-	if err != nil {
-		log.Fatal(err.Error())
-		return
+	ts := make([]*TemplateResource, 0)
+	for _, config := range p.configs {
+
+		arr, err := getTemplateResources(config)
+		if err != nil {
+			log.Warning("resource parse failure: %s", err.Error())
+			continue
+		}
+		ts = append(ts[:], arr[:]...)
 	}
 	for _, t := range ts {
 		t := t

@@ -102,6 +102,11 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	}
 
 	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
+	// if is absolute path, or relative path
+	if !filepath.IsAbs(tr.Dest) {
+		tr.Dest = filepath.Join(config.ConfDir, tr.Dest)
+	}
+
 	return &tr, nil
 }
 

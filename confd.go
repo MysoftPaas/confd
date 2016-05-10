@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/resource/project"
 	"github.com/kelseyhightower/confd/resource/template"
 )
 
@@ -29,10 +31,33 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	templateConfig.StoreClient = storeClient
+	projects, err := project.LoadProjects(config.ConfDir)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	templateConfigs := make([]template.Config, 0)
+	for _, project := range projects {
+
+		// Template configuration.
+		templateConfig := template.Config{
+			ConfDir:       project.ConfDir,
+			ConfigDir:     filepath.Join(project.ConfDir, "conf.d"),
+			KeepStageFile: keepStageFile,
+			Noop:          config.Noop,
+			Prefix:        config.Prefix,
+			SyncOnly:      config.SyncOnly,
+			TemplateDir:   filepath.Join(project.ConfDir, "templates"),
+			StoreClient:   storeClient,
+		}
+		templateConfigs = append(templateConfigs, templateConfig)
+	}
+
 	if onetime {
-		if err := template.Process(templateConfig); err != nil {
-			log.Fatal(err.Error())
+		for _, templateConfig := range templateConfigs {
+
+			if err := template.Process(templateConfig); err != nil {
+				log.Fatal(err.Error())
+			}
 		}
 		os.Exit(0)
 	}
@@ -44,9 +69,9 @@ func main() {
 	var processor template.Processor
 	switch {
 	case config.Watch:
-		processor = template.WatchProcessor(templateConfig, stopChan, doneChan, errChan)
+		processor = template.WatchProcessor(templateConfigs, stopChan, doneChan, errChan)
 	default:
-		processor = template.IntervalProcessor(templateConfig, stopChan, doneChan, errChan, config.Interval)
+		processor = template.IntervalProcessor(templateConfigs, stopChan, doneChan, errChan, config.Interval)
 	}
 
 	go processor.Process()

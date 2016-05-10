@@ -7,14 +7,12 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/template"
 )
 
 var (
@@ -42,13 +40,13 @@ var (
 	srvRecord         string
 	syncOnly          bool
 	table             string
-	templateConfig    template.Config
-	backendsConfig    backends.Config
-	username          string
-	password          string
-	watch             bool
-	appID             string
-	userID            string
+	//templateConfig    template.Config
+	backendsConfig backends.Config
+	username       string
+	password       string
+	watch          bool
+	appID          string
+	userID         string
 )
 
 // A Config structure is used to configure confd.
@@ -218,16 +216,16 @@ func initConfig() error {
 		AppID:        config.AppID,
 		UserID:       config.UserID,
 	}
-	// Template configuration.
-	templateConfig = template.Config{
-		ConfDir:       config.ConfDir,
-		ConfigDir:     filepath.Join(config.ConfDir, "conf.d"),
-		KeepStageFile: keepStageFile,
-		Noop:          config.Noop,
-		Prefix:        config.Prefix,
-		SyncOnly:      config.SyncOnly,
-		TemplateDir:   filepath.Join(config.ConfDir, "templates"),
-	}
+	//// Template configuration.
+	//templateConfig = template.Config{
+	//ConfDir:       config.ConfDir,
+	//ConfigDir:     filepath.Join(config.ConfDir, "conf.d"),
+	//KeepStageFile: keepStageFile,
+	//Noop:          config.Noop,
+	//Prefix:        config.Prefix,
+	//SyncOnly:      config.SyncOnly,
+	//TemplateDir:   filepath.Join(config.ConfDir, "templates"),
+	//}
 	return nil
 }
 
