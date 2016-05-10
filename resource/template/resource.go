@@ -21,13 +21,11 @@ import (
 
 type Config struct {
 	ConfDir       string
-	ConfigDir     string
 	KeepStageFile bool
 	Noop          bool
 	Prefix        string
 	StoreClient   backends.StoreClient
 	SyncOnly      bool
-	TemplateDir   string
 }
 
 // TemplateResourceConfig holds the parsed template resource.
@@ -99,12 +97,6 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 
 	if tr.Gid == -1 {
 		tr.Gid = os.Getegid()
-	}
-
-	tr.Src = filepath.Join(config.TemplateDir, tr.Src)
-	// if is absolute path, or relative path
-	if !filepath.IsAbs(tr.Dest) {
-		tr.Dest = filepath.Join(config.ConfDir, tr.Dest)
 	}
 
 	return &tr, nil

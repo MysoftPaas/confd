@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/project"
 	"github.com/kelseyhightower/confd/resource/template"
 )
 
@@ -31,32 +29,11 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	templateConfig.StoreClient = storeClient
 	if onetime {
-
-		projects, err := project.LoadProjects(config.ConfDir)
-		if err != nil {
+		if err := template.Process(templateConfig); err != nil {
 			log.Fatal(err.Error())
 		}
-		for _, project := range projects {
-
-			// Template configuration.
-
-			templateConfig := template.Config{
-				ConfDir:       project.ConfDir,
-				ConfigDir:     filepath.Join(project.ConfDir, "conf.d"),
-				KeepStageFile: keepStageFile,
-				Noop:          config.Noop,
-				Prefix:        config.Prefix,
-				SyncOnly:      config.SyncOnly,
-				TemplateDir:   filepath.Join(project.ConfDir, "templates"),
-				StoreClient:   storeClient,
-			}
-
-			if err := template.Process(templateConfig); err != nil {
-				log.Fatal(err.Error())
-			}
-		}
-
 		os.Exit(0)
 	}
 
@@ -64,16 +41,6 @@ func main() {
 	doneChan := make(chan bool)
 	errChan := make(chan error, 10)
 
-	templateConfig := template.Config{
-		ConfDir:       "",
-		ConfigDir:     "",
-		KeepStageFile: keepStageFile,
-		Noop:          config.Noop,
-		Prefix:        config.Prefix,
-		SyncOnly:      config.SyncOnly,
-		TemplateDir:   "",
-		StoreClient:   storeClient,
-	}
 	var processor template.Processor
 	switch {
 	case config.Watch:

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/project"
 )
 
 type Processor interface {
@@ -49,32 +48,12 @@ func (p *intervalProcessor) Process() {
 	defer close(p.doneChan)
 	for {
 
-		projects, err := project.LoadProjects(p.config.ConfDir)
+		ts, err := getTemplateResources(p.config)
 		if err != nil {
-			log.Fatal(err.Error())
+			log.Warning("resource parse failure: %s", err.Error())
+			continue
 		}
-		for _, project := range projects {
-
-			// Template configuration.
-			templateConfig := Config{
-				ConfDir:       project.ConfDir,
-				ConfigDir:     filepath.Join(project.ConfDir, "conf.d"),
-				KeepStageFile: p.config.KeepStageFile,
-				Noop:          p.config.Noop,
-				Prefix:        p.config.Prefix,
-				SyncOnly:      p.config.SyncOnly,
-				TemplateDir:   filepath.Join(project.ConfDir, "templates"),
-				StoreClient:   p.config.StoreClient,
-			}
-
-			ts, err := getTemplateResources(templateConfig)
-			if err != nil {
-				log.Warning("resource parse failure: %s", err.Error())
-				continue
-			}
-			process(ts)
-		}
-
+		process(ts)
 		select {
 		case <-p.stopChan:
 			break
@@ -101,30 +80,9 @@ func (p *watchProcessor) Process() {
 	defer close(p.doneChan)
 	ts := make([]*TemplateResource, 0)
 
-	projects, err := project.LoadProjects(p.config.ConfDir)
+	ts, err := getTemplateResources(p.config)
 	if err != nil {
-		log.Fatal(err.Error())
-	}
-	for _, project := range projects {
-
-		// Template configuration.
-		templateConfig := Config{
-			ConfDir:       project.ConfDir,
-			ConfigDir:     filepath.Join(project.ConfDir, "conf.d"),
-			KeepStageFile: p.config.KeepStageFile,
-			Noop:          p.config.Noop,
-			Prefix:        p.config.Prefix,
-			SyncOnly:      p.config.SyncOnly,
-			TemplateDir:   filepath.Join(project.ConfDir, "templates"),
-			StoreClient:   p.config.StoreClient,
-		}
-
-		arr, err := getTemplateResources(templateConfig)
-		if err != nil {
-			log.Warning("resource parse failure: %s", err.Error())
-			continue
-		}
-		ts = append(ts[:], arr[:]...)
+		log.Warning(fmt.Sprintf("Parse template faild. %s", err.Error()))
 	}
 
 	for _, t := range ts {
@@ -157,27 +115,47 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	var lastError error
 	templates := make([]*TemplateResource, 0)
 	log.Debug("Loading template resources from confdir " + config.ConfDir)
+
 	if !isFileExist(config.ConfDir) {
 		log.Warning(fmt.Sprintf("Cannot load template resources: confdir '%s' does not exist", config.ConfDir))
 		return nil, nil
 	}
-	paths, err := recursiveFindFiles(config.ConfigDir, "*toml")
+
+	projects, err := LoadProjects(config.ConfDir)
 	if err != nil {
-		return nil, err
+		log.Fatal(err.Error())
 	}
+	for _, project := range projects {
+		tomlPath := filepath.Join(project.ConfDir, "conf.d")
+		templatePath := filepath.Join(project.ConfDir, "templates")
+		paths, err := recursiveFindFiles(tomlPath, "*toml")
 
-	if len(paths) < 1 {
-		log.Warning("Found no projects")
-	}
-
-	for _, p := range paths {
-		log.Debug(fmt.Sprintf("Found project: %s", p))
-		t, err := NewTemplateResource(p, config)
 		if err != nil {
-			lastError = err
+			log.Warning(fmt.Sprintf("Cannot recursive file: %s, from: %s", err.Error(), project.ConfDir))
 			continue
 		}
-		templates = append(templates, t)
+
+		if len(paths) < 1 {
+			log.Warning("Found no toml")
+		}
+
+		for _, p := range paths {
+			log.Debug(fmt.Sprintf("Found project: %s", p))
+			t, err := NewTemplateResource(p, config)
+			if err != nil {
+				lastError = err
+				continue
+			}
+
+			t.Src = filepath.Join(templatePath, t.Src)
+			// if is absolute path, or relative path
+			if !filepath.IsAbs(t.Dest) {
+				t.Dest = filepath.Join(project.ConfDir, t.Dest)
+			}
+			templates = append(templates, t)
+		}
+
 	}
+
 	return templates, lastError
 }
