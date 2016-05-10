@@ -2,10 +2,12 @@ package template
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/kelseyhightower/confd/log"
+	"github.com/kelseyhightower/confd/resource/project"
 )
 
 type Processor interface {
@@ -32,29 +34,47 @@ func process(ts []*TemplateResource) error {
 }
 
 type intervalProcessor struct {
-	configs  []Config
+	config   Config
 	stopChan chan bool
 	doneChan chan bool
 	errChan  chan error
 	interval int
 }
 
-func IntervalProcessor(configs []Config, stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
-	return &intervalProcessor{configs, stopChan, doneChan, errChan, interval}
+func IntervalProcessor(config Config, stopChan, doneChan chan bool, errChan chan error, interval int) Processor {
+	return &intervalProcessor{config, stopChan, doneChan, errChan, interval}
 }
 
 func (p *intervalProcessor) Process() {
 	defer close(p.doneChan)
 	for {
 
-		for _, config := range p.configs {
-			ts, err := getTemplateResources(config)
+		projects, err := project.LoadProjects(p.config.ConfDir)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		for _, project := range projects {
+
+			// Template configuration.
+			templateConfig := Config{
+				ConfDir:       project.ConfDir,
+				ConfigDir:     filepath.Join(project.ConfDir, "conf.d"),
+				KeepStageFile: p.config.KeepStageFile,
+				Noop:          p.config.Noop,
+				Prefix:        p.config.Prefix,
+				SyncOnly:      p.config.SyncOnly,
+				TemplateDir:   filepath.Join(project.ConfDir, "templates"),
+				StoreClient:   p.config.StoreClient,
+			}
+
+			ts, err := getTemplateResources(templateConfig)
 			if err != nil {
 				log.Warning("resource parse failure: %s", err.Error())
 				continue
 			}
 			process(ts)
 		}
+
 		select {
 		case <-p.stopChan:
 			break
@@ -65,30 +85,48 @@ func (p *intervalProcessor) Process() {
 }
 
 type watchProcessor struct {
-	configs  []Config
+	config   Config
 	stopChan chan bool
 	doneChan chan bool
 	errChan  chan error
 	wg       sync.WaitGroup
 }
 
-func WatchProcessor(configs []Config, stopChan, doneChan chan bool, errChan chan error) Processor {
+func WatchProcessor(config Config, stopChan, doneChan chan bool, errChan chan error) Processor {
 	var wg sync.WaitGroup
-	return &watchProcessor{configs, stopChan, doneChan, errChan, wg}
+	return &watchProcessor{config, stopChan, doneChan, errChan, wg}
 }
 
 func (p *watchProcessor) Process() {
 	defer close(p.doneChan)
 	ts := make([]*TemplateResource, 0)
-	for _, config := range p.configs {
 
-		arr, err := getTemplateResources(config)
+	projects, err := project.LoadProjects(p.config.ConfDir)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	for _, project := range projects {
+
+		// Template configuration.
+		templateConfig := Config{
+			ConfDir:       project.ConfDir,
+			ConfigDir:     filepath.Join(project.ConfDir, "conf.d"),
+			KeepStageFile: p.config.KeepStageFile,
+			Noop:          p.config.Noop,
+			Prefix:        p.config.Prefix,
+			SyncOnly:      p.config.SyncOnly,
+			TemplateDir:   filepath.Join(project.ConfDir, "templates"),
+			StoreClient:   p.config.StoreClient,
+		}
+
+		arr, err := getTemplateResources(templateConfig)
 		if err != nil {
 			log.Warning("resource parse failure: %s", err.Error())
 			continue
 		}
 		ts = append(ts[:], arr[:]...)
 	}
+
 	for _, t := range ts {
 		t := t
 		p.wg.Add(1)

@@ -31,34 +31,32 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	projects, err := project.LoadProjects(config.ConfDir)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	templateConfigs := make([]template.Config, 0)
-	for _, project := range projects {
-
-		// Template configuration.
-		templateConfig := template.Config{
-			ConfDir:       project.ConfDir,
-			ConfigDir:     filepath.Join(project.ConfDir, "conf.d"),
-			KeepStageFile: keepStageFile,
-			Noop:          config.Noop,
-			Prefix:        config.Prefix,
-			SyncOnly:      config.SyncOnly,
-			TemplateDir:   filepath.Join(project.ConfDir, "templates"),
-			StoreClient:   storeClient,
-		}
-		templateConfigs = append(templateConfigs, templateConfig)
-	}
-
 	if onetime {
-		for _, templateConfig := range templateConfigs {
+
+		projects, err := project.LoadProjects(config.ConfDir)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		for _, project := range projects {
+
+			// Template configuration.
+
+			templateConfig := template.Config{
+				ConfDir:       project.ConfDir,
+				ConfigDir:     filepath.Join(project.ConfDir, "conf.d"),
+				KeepStageFile: keepStageFile,
+				Noop:          config.Noop,
+				Prefix:        config.Prefix,
+				SyncOnly:      config.SyncOnly,
+				TemplateDir:   filepath.Join(project.ConfDir, "templates"),
+				StoreClient:   storeClient,
+			}
 
 			if err := template.Process(templateConfig); err != nil {
 				log.Fatal(err.Error())
 			}
 		}
+
 		os.Exit(0)
 	}
 
@@ -66,12 +64,22 @@ func main() {
 	doneChan := make(chan bool)
 	errChan := make(chan error, 10)
 
+	templateConfig := template.Config{
+		ConfDir:       "",
+		ConfigDir:     "",
+		KeepStageFile: keepStageFile,
+		Noop:          config.Noop,
+		Prefix:        config.Prefix,
+		SyncOnly:      config.SyncOnly,
+		TemplateDir:   "",
+		StoreClient:   storeClient,
+	}
 	var processor template.Processor
 	switch {
 	case config.Watch:
-		processor = template.WatchProcessor(templateConfigs, stopChan, doneChan, errChan)
+		processor = template.WatchProcessor(templateConfig, stopChan, doneChan, errChan)
 	default:
-		processor = template.IntervalProcessor(templateConfigs, stopChan, doneChan, errChan, config.Interval)
+		processor = template.IntervalProcessor(templateConfig, stopChan, doneChan, errChan, config.Interval)
 	}
 
 	go processor.Process()
