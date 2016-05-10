@@ -2,10 +2,12 @@ package redis
 
 import (
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"os"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/garyburd/redigo/redis"
 	"github.com/kelseyhightower/confd/log"
 )
 
@@ -27,19 +29,30 @@ func tryConnect(machines []string, password string) (redis.Conn, error) {
 		if _, err = os.Stat(address); err == nil {
 			network = "unix"
 		}
-		log.Debug(fmt.Sprintf("Trying to connect to redis node %s", address))
-		
+		arr := strings.Split(address, "/")
+		var database int
+		if len(arr) == 2 {
+			db, err := strconv.Atoi(arr[1])
+			if err != nil {
+				log.Fatal("invalid address: %s, error: %s", address, err.Error())
+			}
+			database = db
+		}
+
+		log.Info(fmt.Sprintf("Trying to connect to redis address: %s, db: %d", arr[0], database))
+
 		dialops := []redis.DialOption{
 			redis.DialConnectTimeout(time.Second),
 			redis.DialReadTimeout(time.Second),
 			redis.DialWriteTimeout(time.Second),
+			redis.DialDatabase(database),
 		}
 
 		if password != "" {
 			dialops = append(dialops, redis.DialPassword(password))
 		}
 
-		conn, err = redis.Dial(network, address, dialops...)
+		conn, err = redis.Dial(network, arr[0], dialops...)
 
 		if err != nil {
 			continue
@@ -58,8 +71,8 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 
 		resp, err := c.client.Do("PING")
 		if (err != nil && err == redis.ErrNil) || resp != "PONG" {
-			log.Error(fmt.Sprintf("Existing redis connection no longer usable. " +
-			    "Will try to re-establish. Error: %s", err.Error()))
+			log.Error(fmt.Sprintf("Existing redis connection no longer usable. "+
+				"Will try to re-establish. Error: %s", err.Error()))
 			c.client = nil
 		}
 	}
@@ -80,7 +93,7 @@ func (c *Client) connectedClient() (redis.Conn, error) {
 // It returns an error if a connection to the cluster cannot be made.
 func NewRedisClient(machines []string, password string) (*Client, error) {
 	var err error
-	clientWrapper := &Client{ machines : machines, password: password, client: nil }
+	clientWrapper := &Client{machines: machines, password: password, client: nil}
 	clientWrapper.client, err = tryConnect(machines, password)
 	return clientWrapper, err
 }
