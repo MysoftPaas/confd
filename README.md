@@ -1,15 +1,30 @@
 # confd
 
-- useage 
+在原版本的基础上做了些修改，主要是解决confd运行和配置模板的编写隔离,  
+一旦确定了配置模板的位置，后续的迭代不需要关注confd, 自动更新。
 
-./bin/confd  -backend redis -interval 5 -confdir /etc/confd -node 127.0.0.1:6379/8 -client-key 123
+## 改变的内容
 
+- 修改了配置文件位置, 引入了project的概念
 
-## Changes
+- redis 支持指定特定的database
 
-### 1、config 
+## 运行示例
 
-- /etc/confd/
+- 使用redis作为配置源
+
+./bin/confd  -backend redis -interval 60 -confdir /etc/confd -node 127.0.0.1:6379/8 -client-key 123  
+
+**解释:** 以redis作为源, 同步周期为60秒, redis的连接host=127.0.0.1, port=6379, database=8, password=123
+
+## 新的配置方式使用说明
+
+### 1、confd的运行配置目录
+
+- 默认位置/etc/confd/, 也可以通过-confdir运行参数指定
+
+当需要添加新的项目模板时，只需要在/etc/confd目录下添加项目模板toml配置文件,  
+如下示例，有app1,app2,app3三个项目配置:  
 
 ```
 ├── /etc/confd  
@@ -20,58 +35,56 @@
 
 ```
 
-- app1.toml
+文件app1.toml的内容如下:
 
 ```
 [project]
 name = appcloud
+
+#这里指定项目配置文件目录
 conf_dir = /opt/www/appcloud/protected/config/confd/
 
 ```
 
-- structure of conf_dir
+项目配置文件目录/opt/www/appcloud/protected/config/confd/ 结构如下:  
 
 ```
 │   ├── conf.d/  
-│   │   └── web.toml  
+│   │   └── setting.toml  
+│   ├── dest/  
+│   │   └── setting.php  
 │   └── templates/  
-│       └── web.tmpl  
+│       └── setting.tmpl  
 ```
 
-- templateResource.dest
-
-support relactive path base on project.conf_dir and absolute path
-
-```
-
-[template]
-src = "myconfig.tmpl"
-#relactive path
-dest = "dest/myconfig.conf.php"
-keys = [
-    "/myapp/database/url",
-    "/myapp/database/user",
-]
-
-```
+setting.toml 文件示例  
 
 ```
 
 [template]
-src = "myconfig.tmpl"
-#absolute path
-dest = "/tmp/myconfig.conf.php"
+src = "setting.tmpl"
+
+# 支持相对路径(相当路径是以项目配置文件里的conf_dir为基础, 如要使用上级目录请使用/../)和绝对路径
+dest = "dest/setting.php"
+prefix = "appcloud"
 keys = [
-    "/myapp/database/url",
-    "/myapp/database/user",
+    "/database/uid",
+    "/database/pwd",
 ]
+
+```
+
+setting.tmpl 文件示例  
+
+```
+<?php
+
+define('DB_UID', '{{getv "/database/uid" "root"}}');
+define('DB_PWD', '{{getv "/database/pwd" "123456"}}');
 
 ```
 
 ### 2、redis
 
-- support special database
+如使用-node 127.0.0.1:6379/8, 指定序号为8的database
 
-./bin/confd  -backend redis -interval 5 -confdir /etc/confd -node 127.0.0.1:6379/8 -client-key 123
-
-> host:127.0.0.1, port:6379, database:8, password:123
