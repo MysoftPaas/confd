@@ -1,7 +1,8 @@
 # confd
 
-在原版本的基础上做了些修改，主要是解决confd运行和配置模板的编写隔离,  
-一旦确定了配置模板的位置，后续的迭代不需要关注confd, 自动更新。
+在[kelseyhightower/confd](https://github.com/kelseyhightower/confd)基础上做了些修改。  
+配置confd的运行和配置模板的编写隔离,当有新项目要引入confd配置体系，只需要往confd的运行配置文件夹里添加一个project的配置,
+后续该项目的配置文件迭代都不需再修改confd的运行配置。
 
 ## 改变的内容
 
