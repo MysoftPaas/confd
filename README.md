@@ -89,3 +89,9 @@ define('DB_PWD', '{{getv "/database/pwd" "123456"}}');
 
 如使用-node 127.0.0.1:6379/8, 指定序号为8的database
 
+
+## TODO
+
+- 集成web gui 管理配置
+
+
