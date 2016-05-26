@@ -15,6 +15,8 @@ type ProjectConfig struct {
 type Project struct {
 	//name of project
 	Name string
+	// prefix of key
+	Prefix string
 	//directory of config
 	ConfDir string `toml:"conf_dir"`
 }
