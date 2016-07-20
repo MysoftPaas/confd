@@ -141,7 +141,7 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 
 		for _, p := range paths {
 			log.Debug(fmt.Sprintf("Found project: %s", p))
-			t, err := NewTemplateResource(p, config)
+			t, err := NewTemplateResource(p, config, project)
 			if err != nil {
 				lastError = err
 				continue

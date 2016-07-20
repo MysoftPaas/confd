@@ -58,7 +58,7 @@ type TemplateResource struct {
 var ErrEmptySrc = errors.New("empty src template")
 
 // NewTemplateResource creates a TemplateResource.
-func NewTemplateResource(path string, config Config) (*TemplateResource, error) {
+func NewTemplateResource(path string, config Config, project *Project) (*TemplateResource, error) {
 	if config.StoreClient == nil {
 		return nil, errors.New("A valid StoreClient is required.")
 	}
@@ -82,10 +82,15 @@ func NewTemplateResource(path string, config Config) (*TemplateResource, error) 
 	tr.syncOnly = config.SyncOnly
 	addFuncs(tr.funcMap, tr.store.FuncMap)
 
+	var prefix string
+
 	if config.Prefix != "" {
-		tr.Prefix = config.Prefix
+		prefix = config.Prefix
+	} else if project.Prefix != "" {
+		prefix = project.Prefix
 	}
-	tr.Prefix = filepath.Join("/", tr.Prefix)
+
+	tr.Prefix = filepath.Join("/", prefix, tr.Prefix)
 
 	if tr.Src == "" {
 		return nil, ErrEmptySrc
@@ -108,7 +113,16 @@ func (t *TemplateResource) setVars() error {
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.Prefix)
 
-	result, err := t.storeClient.GetValues(appendPrefix(t.Prefix, t.Keys))
+	keys := make([]string, len(t.Keys))
+	for i, k := range t.Keys {
+		if strings.HasPrefix(k, "^") {
+			keys[i] = strings.TrimPrefix(k, "^")
+		} else {
+			keys[i] = path.Join(t.Prefix, k)
+		}
+	}
+
+	result, err := t.storeClient.GetValues(keys)
 	if err != nil {
 		return err
 	}
