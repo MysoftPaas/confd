@@ -107,9 +107,7 @@ func NewTemplateResource(path string, config Config, project *Project) (*Templat
 	return &tr, nil
 }
 
-// setVars sets the Vars for template resource.
-func (t *TemplateResource) setVars() error {
-	var err error
+func (t *TemplateResource) GetAllKeys() []string {
 	log.Debug("Retrieving keys from store")
 	log.Debug("Key prefix set to " + t.Prefix)
 
@@ -121,7 +119,14 @@ func (t *TemplateResource) setVars() error {
 			keys[i] = path.Join(t.Prefix, k)
 		}
 	}
+	return keys
+}
 
+// setVars sets the Vars for template resource.
+func (t *TemplateResource) setVars() error {
+
+	keys := t.GetAllKeys()
+	var err error
 	result, err := t.storeClient.GetValues(keys)
 	if err != nil {
 		return err

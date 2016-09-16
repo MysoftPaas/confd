@@ -98,6 +98,21 @@ func NewRedisClient(machines []string, password string) (*Client, error) {
 	return clientWrapper, err
 }
 
+func (c *Client) Set(key string, value string) error {
+
+	// Ensure we have a connected redis client
+	rClient, err := c.connectedClient()
+	if err != nil && err != redis.ErrNil {
+		return err
+	}
+	if _, err := rClient.Do("SET", key, value); err == nil {
+		return nil
+	} else {
+		return err
+	}
+
+}
+
 // GetValues queries redis for keys prefixed by prefix.
 func (c *Client) GetValues(keys []string) (map[string]string, error) {
 	// Ensure we have a connected redis client
