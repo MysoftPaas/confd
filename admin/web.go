@@ -30,8 +30,8 @@ func (w *WebServer) Start() {
 
 	app.Get("/api/projects", view.GetProjects)
 	app.Get("/api/project/:projectName", view.GetProject)
-	app.Get("/api/project/:projectName/items/:key", view.GetItem)
-	app.Delete("/api/project/:projectName/items/:key", view.DeleteItem)
+	app.Get("/api/project/:projectName/item/:key", view.GetItem)
+	app.Delete("/api/project/:projectName/item/:key", view.DeleteItem)
 	app.Get("/api/project/:projectName/items", view.GetItems)
 	app.Post("/api/project/:projectName/items", view.SetItem)
 

@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -98,6 +99,25 @@ func NewRedisClient(machines []string, password string) (*Client, error) {
 	return clientWrapper, err
 }
 
+func (c *Client) Remove(key string) error {
+
+	// Ensure we have a connected redis client
+	rClient, err := c.connectedClient()
+	if err != nil && err != redis.ErrNil {
+		return err
+	}
+	result, err := redis.Int(rClient.Do("DEL", key))
+	if err == nil {
+		if result > 0 {
+			return nil
+		} else {
+			return errors.New("key:" + key + " not exits")
+		}
+	} else {
+		return err
+	}
+}
+
 func (c *Client) Set(key string, value string) error {
 
 	// Ensure we have a connected redis client
@@ -105,12 +125,8 @@ func (c *Client) Set(key string, value string) error {
 	if err != nil && err != redis.ErrNil {
 		return err
 	}
-	if _, err := rClient.Do("SET", key, value); err == nil {
-		return nil
-	} else {
-		return err
-	}
-
+	_, err = rClient.Do("SET", key, value)
+	return err
 }
 
 // GetValues queries redis for keys prefixed by prefix.

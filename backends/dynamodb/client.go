@@ -107,6 +107,9 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 func (c *Client) Set(key string, value string) error {
 	return errors.New("function not supported")
 }
+func (c *Client) Remove(key string) error {
+	return errors.New("function not supported")
+}
 
 // WatchPrefix is not implemented
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {

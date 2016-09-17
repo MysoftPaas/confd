@@ -133,7 +133,7 @@ func (t *TemplateResource) setVars() error {
 	}
 
 	t.store.Purge()
-
+	log.Debug("set store")
 	for k, v := range result {
 		t.store.Set(filepath.Join("/", strings.TrimPrefix(k, t.Prefix)), v)
 	}
@@ -153,6 +153,7 @@ func (t *TemplateResource) createStageFile() error {
 
 	log.Debug("Compiling source template " + t.Src)
 	tmpl, err := template.New(path.Base(t.Src)).Funcs(t.funcMap).ParseFiles(t.Src)
+
 	if err != nil {
 		return fmt.Errorf("Unable to process template %s, %s", t.Src, err)
 	}
@@ -164,6 +165,7 @@ func (t *TemplateResource) createStageFile() error {
 	}
 
 	if err = tmpl.Execute(temp, nil); err != nil {
+		log.Error("execute temp file: %s, error: %s", t.Src, err.Error())
 		temp.Close()
 		os.Remove(temp.Name())
 		return err

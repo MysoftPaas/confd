@@ -128,6 +128,9 @@ type watchResponse struct {
 func (c *Client) Set(key string, value string) error {
 	return errors.New("function not supported")
 }
+func (c *Client) Remove(key string) error {
+	return errors.New("function not supported")
+}
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	<-stopChan
 	return 0, nil

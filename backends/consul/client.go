@@ -77,6 +77,9 @@ type watchResponse struct {
 	err       error
 }
 
+func (c *ConsulClient) Remove(key string) error {
+	return errors.New("function not supported")
+}
 func (c *ConsulClient) Set(key string, value string) error {
 	return errors.New("function not supported")
 }

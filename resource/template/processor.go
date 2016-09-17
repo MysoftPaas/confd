@@ -25,7 +25,7 @@ func process(ts []*TemplateResource) error {
 	var lastErr error
 	for _, t := range ts {
 		if err := t.process(); err != nil {
-			log.Error(err.Error())
+			log.Error("process resource fail. src: %s, error: %s", t.Src, err.Error())
 			lastErr = err
 		}
 	}
