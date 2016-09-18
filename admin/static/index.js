@@ -3,7 +3,7 @@
     exports.app = function(elId) {
         return new Vue({
             paths: {
-                get: '/projects'
+                get: config.apiHost + '/api/projects'
             },
             el: '#' + elId,
             data: {
@@ -20,7 +20,7 @@
                             if (response.data.result === false) {
                                 ui.alert('出错', response.data.msg, 'error')
                             }
-                            self.items = response.data.items
+                            self.items = response.data;
                         })
                         .catch(function(err) {
                             ui.hideLoading()

@@ -1,17 +1,11 @@
 package admin
 
 import (
-	"bytes"
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
-	"github.com/kelseyhightower/confd/log"
-	"github.com/kelseyhightower/confd/resource/template"
-
+	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris"
+	"github.com/kelseyhightower/confd/resource/template"
 )
 
 type WebServer struct {
@@ -28,25 +22,18 @@ func New(templateConfig template.Config, port int) *WebServer {
 }
 
 func (w *WebServer) Start() {
+	crs := cors.Default()
+	crs.Log = iris.Logger
 	config := iris.Configuration{Charset: "UTF-8", Gzip: true}
 	app := iris.New(config)
+	app.Use(crs)
+
 	//app.Favicon("./favicon.ico")
 	view := &View{WebServer: w}
-	app.Get("/", view.Home)
 
 	//service static file
-	app.Get("/static/*file", func(ctx *iris.Context) {
-		requestpath := filepath.Join("static/", ctx.Param("file"))
-		log.Debug("static path:" + requestpath)
-		path := strings.Replace(requestpath, "/", string(os.PathSeparator), -1)
-		data, err := Asset(path)
-		if err != nil {
-			ctx.NotFound()
-			return
-		}
-
-		ctx.ServeContent(bytes.NewReader(data), path, time.Now(), true)
-	})
+	app.Get("/", view.ServeStatic)
+	app.Get("/static/*file", view.ServeStatic)
 
 	app.Get("/api/projects", view.GetProjects)
 	app.Get("/api/project/:projectName", view.GetProject)

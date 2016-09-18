@@ -1,10 +1,13 @@
 package admin
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/kataras/iris"
 	"github.com/kelseyhightower/confd/log"
@@ -13,6 +16,26 @@ import (
 
 type View struct {
 	WebServer *WebServer
+}
+
+func (v *View) ServeStatic(ctx *iris.Context) {
+	path := ctx.PathString()
+	if path == "/" {
+		path = "index.html"
+	} else {
+		path = ctx.Param("file")
+	}
+
+	requestpath := filepath.Join("static/", path)
+	log.Debug("static path:" + requestpath)
+	path = strings.Replace(requestpath, "/", string(os.PathSeparator), -1)
+	data, err := Asset(path)
+	if err != nil {
+		ctx.NotFound()
+		return
+	}
+
+	ctx.ServeContent(bytes.NewReader(data), path, time.Now(), true)
 }
 
 func (v *View) Home(ctx *iris.Context) {
