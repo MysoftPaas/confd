@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -83,11 +84,41 @@ func getFullKey(v *View, projectName string, key string) (string, error) {
 
 func (v *View) GetProject(ctx *iris.Context) {
 
-	if proj, err := getProject(v, ctx.Param("projectName")); err == nil {
-		ctx.JSON(iris.StatusOK, proj)
-	} else {
+	proj, err := getProject(v, ctx.Param("projectName"))
+	if err == nil {
+		tmpResources, err := template.GetTemplateResourceByProject(proj, v.WebServer.templateConfig)
+		if err == nil {
+			ctx.JSON(iris.StatusOK,
+				iris.Map{"project": proj, "resources": tmpResources})
+		}
+	}
+	if err != nil {
 		log.Error(err.Error())
 		ctx.JSON(iris.StatusInternalServerError, nil)
+	}
+}
+
+func (v *View) GetTemplates(ctx *iris.Context) {
+
+	proj, err := getProject(v, ctx.Param("projectName"))
+	filepath := iris.DecodeURL(ctx.Param("filepath"))
+	tmpResources, err := template.GetTemplateResourceByProject(proj, v.WebServer.templateConfig)
+	if err == nil {
+		for _, tr := range tmpResources {
+			if tr.Src == filepath {
+				tmpl, err := ioutil.ReadFile(tr.Src)
+				if err == nil {
+					ctx.Text(iris.StatusOK, string(tmpl[:]))
+					return
+				} else {
+					ctx.Text(iris.StatusInternalServerError, err.Error())
+					return
+				}
+
+			}
+		}
+		ctx.Text(iris.StatusNotFound, "file not exits. filepath: "+filepath)
+		return
 	}
 }
 
@@ -96,7 +127,6 @@ func (v *View) GetItems(ctx *iris.Context) {
 	pairs := make(map[string]string)
 	if proj, err := getProject(v, projectName); err == nil {
 		if tmpResources, err := template.GetTemplateResourceByProject(proj, v.WebServer.templateConfig); err == nil {
-			log.Debug("getItems")
 			for _, rs := range tmpResources {
 				keys := rs.GetAllKeys()
 				if pairsNew, err := v.WebServer.templateConfig.StoreClient.GetValues(keys); err == nil {
@@ -149,7 +179,7 @@ func (v *View) GetItem(ctx *iris.Context) {
 			ctx.JSON(iris.StatusOK, nil)
 			return
 		}
-		key = strings.Replace(key, "-", "/", -1)
+		key = iris.DecodeURL(key)
 		keys := []string{key}
 		if pairs, err := v.WebServer.templateConfig.StoreClient.GetValues(keys); err == nil {
 			ctx.JSON(iris.StatusOK, pairs)
@@ -169,7 +199,7 @@ func (v *View) DeleteItem(ctx *iris.Context) {
 	if key == "" {
 		ctx.JSON(iris.StatusOK, iris.Map{"result": false, "msg": "key is empty"})
 	} else {
-		key = strings.Replace(key, "-", "/", -1)
+		key = iris.DecodeURL(key)
 		if key, err := getFullKey(v, projectName, key); err == nil {
 			if err := v.WebServer.templateConfig.StoreClient.Remove(key); err == nil {
 				ctx.JSON(iris.StatusOK, iris.Map{"result": true})

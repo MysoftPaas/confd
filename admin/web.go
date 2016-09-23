@@ -24,7 +24,7 @@ func New(templateConfig template.Config, port int) *WebServer {
 func (w *WebServer) Start() {
 	crs := cors.Default()
 	crs.Log = iris.Logger
-	config := iris.Configuration{Charset: "UTF-8", Gzip: true}
+	config := iris.Configuration{Charset: "UTF-8", Gzip: true, DisablePathEscape: true}
 	app := iris.New(config)
 	app.Use(crs)
 
@@ -41,6 +41,8 @@ func (w *WebServer) Start() {
 	app.Delete("/api/project/:projectName/item/:key", view.DeleteItem)
 	app.Get("/api/project/:projectName/items", view.GetItems)
 	app.Post("/api/project/:projectName/items", view.SetItem)
+	//tmpl
+	app.Get("/api/project/:projectName/tmpl/:filepath", view.GetTemplates)
 
 	app.Listen(fmt.Sprintf(":%d", w.port))
 	//iris.ListenTLSAuto(fmt.Sprintf(":%d", port))
