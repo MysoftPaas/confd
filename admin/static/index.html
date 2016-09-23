@@ -48,7 +48,7 @@
             </div>
             <div class="six columns" >
                 <div v-if="currentProject.project">
-                    <h4 style="margin-top:0px;">{{currentProject.project.Name}}</h4>
+                    <h4 style="margin-top:0px;"><a href="/project.html?name={{currentProject.project.Name}}" target="_self">{{currentProject.project.Name}}</a></h4>
                     <div class="row">
                         <label class="label">Prefix</label>
                         <div>
@@ -84,7 +84,9 @@
                     <div class="row">
                         <label class="label">Keys</label>
                         <div>
-                            {{res.Keys | json}}
+                            <pre>
+                                <code>{{res.Keys | json}}</code>
+                            </pre>
                         </div>
                     </div>
                     </div>

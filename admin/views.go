@@ -86,6 +86,10 @@ func (v *View) GetProject(ctx *iris.Context) {
 
 	proj, err := getProject(v, ctx.Param("projectName"))
 	if err == nil {
+		if proj == nil {
+			ctx.JSON(iris.StatusNotFound, iris.Map{})
+			return
+		}
 		tmpResources, err := template.GetTemplateResourceByProject(proj, v.WebServer.templateConfig)
 		if err == nil {
 			ctx.JSON(iris.StatusOK,
@@ -148,22 +152,27 @@ func (v *View) GetItems(ctx *iris.Context) {
 	}
 }
 
+type KV struct {
+	Key   string
+	Value string
+}
+
 func (v *View) SetItem(ctx *iris.Context) {
-	projectName := ctx.Param("projectName")
 	// key should contains prefix of resource
-	key := ctx.PostValue("key")
-	value := ctx.PostValue("value")
-	if key, err := getFullKey(v, projectName, key); err == nil {
-		log.Debug("set k: %s, v: %s", key, value)
-		if redisErr := v.WebServer.templateConfig.StoreClient.Set(key, value); redisErr == nil {
-			ctx.JSON(iris.StatusOK, iris.Map{"result": true})
-		} else {
-			log.Error(redisErr.Error())
-			ctx.EmitError(500) //.JSON(iris.StatusInternalServerError, "")
-		}
+	kv := &KV{}
+	if err := ctx.ReadJSON(kv); err != nil {
+		panic(err.Error())
+	}
+	log.Debug("set k: %s, v: %s", kv.Key, kv.Value)
+	if kv.Key == "" {
+		ctx.JSON(iris.StatusOK, iris.Map{"result": false, "msg": "key is empty"})
+		return
+	}
+	if redisErr := v.WebServer.templateConfig.StoreClient.Set(kv.Key, kv.Value); redisErr == nil {
+		ctx.JSON(iris.StatusOK, iris.Map{"result": true})
 	} else {
-		log.Error(err.Error())
-		ctx.JSON(iris.StatusInternalServerError, iris.Map{"result": false})
+		log.Error(redisErr.Error())
+		ctx.EmitError(500) //.JSON(iris.StatusInternalServerError, "")
 	}
 
 }
