@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="normalize.min.css">
 <link rel="stylesheet" href="skeleton.min.css">
 <link rel="stylesheet" href="sweetalert.min.css">
+<link rel="stylesheet" href="style.css">
   <!-- Favicon
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <link rel="icon" type="image/png" href="favicon.png">
@@ -38,15 +39,57 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="proj in items">
+                    <tr @click="selectProject(proj)" v-for="proj in items">
                         <td>{{proj.Name}}</td>
                         <td>{{proj.Prefix}}</td>
                     </tr>
                 </tbody>
             </table>
             </div>
-            <div class="six columns">
-               <h4>Detail</h4> 
+            <div class="six columns" >
+                <div v-if="currentProject.project">
+                    <h4 style="margin-top:0px;">{{currentProject.project.Name}}</h4>
+                    <div class="row">
+                        <label class="label">Prefix</label>
+                        <div>
+                            {{currentProject.project.Profix}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="label">ConfDir</label>
+                        <div>
+                            {{currentProject.project.ConfDir}}
+                        </div>
+                    </div>
+                    <h6 style="margin-top:20px;">Resources</h6>
+                    <div v-for="res in currentProject.resources" style="padding-bottom:10px; border-bottom: 1px solid #000">
+                    <div class="row">
+                        <label class="label">Prefix</label>
+                        <div>
+                            {{res.Prefix}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="label">Src</label>
+                        <div>
+                            {{res.Src}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="label">Dest</label>
+                        <div>
+                            {{res.Dest}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="label">Keys</label>
+                        <div>
+                            {{res.Keys | json}}
+                        </div>
+                    </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
