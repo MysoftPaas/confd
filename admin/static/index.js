@@ -9,6 +9,7 @@
                     project: null,
                     resources: []
                 },
+                apiHost: config.apiHost,
             },
             methods: {
                 search: function() {},
