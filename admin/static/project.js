@@ -39,6 +39,7 @@
                         });
                 },
                 delete: function(key) {
+                    self = this;
                     ui.confirm("delete", "delete " + key + "?", function() {
 
                         if (!key) {
@@ -47,12 +48,12 @@
                         }
                         var projectName = utils.getQuery('name');
                         var encodedKey = encodeURIComponent(key);
-                        axios.delete(config.apiHost + '/api/project/' + projectName + '/item/' + encodedKey)
+                        axios.post(config.apiHost + '/api/project/' + projectName + '/items', {
+                                "key": encodedKey
+                            })
                             .then(function(response) {
-                                console.log(response.data);
                                 if (response.data.result) {
                                     ui.hideLoading();
-                                    self = this;
                                     self.items[key] = '';
                                     ui.alert('成功', "删除成功", 'success');
                                 } else {

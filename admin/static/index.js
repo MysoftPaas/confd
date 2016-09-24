@@ -34,7 +34,6 @@
                     self.currentProject.project = proj
                     axios.get(config.apiHost + '/api/project/' + proj.Name)
                         .then(function(response) {
-                            console.log(response.data);
                             ui.hideLoading();
                             self.currentProject.resources = response.data.resources;
 

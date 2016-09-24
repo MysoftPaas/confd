@@ -22,7 +22,12 @@ func New(templateConfig template.Config, port int) *WebServer {
 }
 
 func (w *WebServer) Start() {
-	crs := cors.Default()
+	crs := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
+		AllowedHeaders:   []string{"DNT", "X-CustomHeader", "Keep-Alive", "User-Agent", "X-Requested-With", "If-Modified-Since", "Cache-Control", "Content-Type"},
+		AllowCredentials: true,
+	})
 	crs.Log = iris.Logger
 	config := iris.Configuration{Charset: "UTF-8", Gzip: true, DisablePathEscape: true}
 	app := iris.New(config)
