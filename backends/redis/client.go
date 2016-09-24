@@ -111,7 +111,7 @@ func (c *Client) Remove(key string) error {
 		if result > 0 {
 			return nil
 		} else {
-			return errors.New("key:" + key + " not exits")
+			return errors.New("key:" + key + " not exist")
 		}
 	} else {
 		return err

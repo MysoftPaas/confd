@@ -1,14 +1,22 @@
 # confd
 
-在[kelseyhightower/confd](https://github.com/kelseyhightower/confd)基础上做了些修改。  
 配置confd的运行和配置模板的编写隔离,当有新项目要引入confd配置体系，只需要往confd的运行配置文件夹里添加一个project的配置,
 后续该项目的配置文件迭代都不需再修改confd的运行配置。
 
 ## 改变的内容
 
 - 修改了配置文件位置, 引入了project的概念
-
 - redis 支持指定特定的database
+- WebUI admin
+
+## 编译
+
+```bash
+> cd admin
+> go-bindata -pkg admin static/...
+> cd ../ && ./build
+
+```
 
 ## 运行示例
 

@@ -10,15 +10,13 @@
                     key: "",
                     value: ""
                 },
-                mouseon: false,
             },
             methods: {
                 mouseover: function(e) {
-                    e.target.parentElement.style.backgroundColor ="#CCE2FF";
-                    console.log(e)
+                    e.target.parentElement.style.backgroundColor = "#CCE2FF";
                 },
                 mouseout: function(e) {
-                    e.target.parentElement.style.backgroundColor ="#fff";
+                    e.target.parentElement.style.backgroundColor = "#fff";
                 },
                 search: function() {},
                 loadData: function() {
@@ -29,10 +27,9 @@
                         }(), function() {
                             return axios.get(config.apiHost + '/api/project/' + projectName + '/items');
                         }()]).then(axios.spread(function(resp1, resp2) {
-                            ui.hideLoading()
+                            ui.hideLoading();
                             self.project = resp1.data.project;
                             self.items = resp2.data;
-                            console.log(self.items)
 
                         }))
                         .catch(function(err) {
@@ -42,12 +39,36 @@
                         });
                 },
                 delete: function(key) {
-                    console.log(key);
+                    ui.confirm("delete", "delete " + key + "?", function() {
+
+                        if (!key) {
+                            ui.alert('失败', 'key不能为空', 'error');
+                            return;
+                        }
+                        var projectName = utils.getQuery('name');
+                        var encodedKey = encodeURIComponent(key);
+                        axios.delete(config.apiHost + '/api/project/' + projectName + '/item/' + encodedKey)
+                            .then(function(response) {
+                                console.log(response.data);
+                                if (response.data.result) {
+                                    ui.hideLoading();
+                                    self = this;
+                                    self.items[key] = '';
+                                    ui.alert('成功', "删除成功", 'success');
+                                } else {
+                                    ui.alert('失败', response.data.msg, 'error');
+                                }
+
+                            }).catch(function(err) {
+                                ui.hideLoading()
+                                ui.alert('出错', '服务器端错误', 'error')
+                                console.log(err)
+                            });
+                    })
                 },
                 select: function(key, value) {
                     this.selectedItem.key = key
                     this.selectedItem.value = value
-                    console.log(key);
                 },
                 set: function(item) {
                     self = this;

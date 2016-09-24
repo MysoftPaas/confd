@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,15 +24,22 @@ func (v *View) ServeStatic(ctx *iris.Context) {
 	path := ctx.PathString()
 	if path == "/" {
 		path = "index.html"
-	} else {
-		path = ctx.Param("file")
+		path = filepath.Join("static/", path)
 	}
 
-	requestpath := filepath.Join("static/", path)
-	log.Debug("static path:" + requestpath)
-	path = strings.Replace(requestpath, "/", string(os.PathSeparator), -1)
+	path = strings.Replace(path, "/", string(os.PathSeparator), -1)
+	path = strings.TrimPrefix(path, "/")
+	if uri, err := url.Parse(path); err == nil {
+		path = uri.Path
+	} else {
+		ctx.Text(iris.StatusInternalServerError, err.Error())
+		return
+	}
+
+	log.Debug("static path:" + path)
 	data, err := Asset(path)
 	if err != nil {
+		log.Error(err.Error())
 		ctx.NotFound()
 		return
 	}
@@ -128,8 +136,16 @@ func (v *View) GetTemplates(ctx *iris.Context) {
 
 func (v *View) GetItems(ctx *iris.Context) {
 	projectName := ctx.Param("projectName")
+	if projectName == "" {
+		ctx.Text(iris.StatusNotFound, "projectName is empty")
+		return
+	}
 	pairs := make(map[string]string)
 	if proj, err := getProject(v, projectName); err == nil {
+		if proj == nil {
+			ctx.JSON(iris.StatusNotFound, iris.Map{})
+			return
+		}
 		if tmpResources, err := template.GetTemplateResourceByProject(proj, v.WebServer.templateConfig); err == nil {
 			for _, rs := range tmpResources {
 				keys := rs.GetAllKeys()
@@ -204,23 +220,17 @@ func (v *View) GetItem(ctx *iris.Context) {
 
 func (v *View) DeleteItem(ctx *iris.Context) {
 	key := ctx.Param("key")
-	projectName := ctx.Param("projectName")
+	//projectName := ctx.Param("projectName")
 	if key == "" {
 		ctx.JSON(iris.StatusOK, iris.Map{"result": false, "msg": "key is empty"})
 	} else {
 		key = iris.DecodeURL(key)
-		if key, err := getFullKey(v, projectName, key); err == nil {
-			if err := v.WebServer.templateConfig.StoreClient.Remove(key); err == nil {
-				ctx.JSON(iris.StatusOK, iris.Map{"result": true})
-			} else {
-				log.Error(err.Error())
-				ctx.JSON(iris.StatusInternalServerError, iris.Map{"result": false, "msg": err.Error()})
-			}
-
+		if err := v.WebServer.templateConfig.StoreClient.Remove(key); err == nil {
+			ctx.JSON(iris.StatusOK, iris.Map{"result": true})
 		} else {
-			log.Error(err.Error())
-			ctx.JSON(iris.StatusInternalServerError, iris.Map{"result": false, "msg": err.Error()})
+			ctx.JSON(iris.StatusOK, iris.Map{"result": false, "msg": err.Error()})
 		}
+
 	}
 
 }

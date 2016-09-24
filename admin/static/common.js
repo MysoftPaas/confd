@@ -7,7 +7,7 @@
             swal({
                 title: title,
                 text: msg,
-                type: "info",
+                type: "warning",
                 showCancelButton: true,
                 closeOnConfirm: false,
                 showLoaderOnConfirm: true,

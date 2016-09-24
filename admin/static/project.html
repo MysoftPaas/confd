@@ -11,18 +11,18 @@
   <!--<link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">-->
   <!-- CSS
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-<link rel="stylesheet" href="normalize.min.css">
-<link rel="stylesheet" href="skeleton.min.css">
-<link rel="stylesheet" href="sweetalert.min.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/static/normalize.min.css">
+<link rel="stylesheet" href="/static/skeleton.min.css">
+<link rel="stylesheet" href="/static/sweetalert.min.css">
+<link rel="stylesheet" href="/static/style.css">
   <!-- Favicon
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <link rel="icon" type="image/png" href="favicon.png">
-<script src="vue.min.js"></script>
-<script type="text/javascript" src="sweetalert.min.js"></script>
-<script type="text/javascript" src="axios.min.js"></script>
-<script src="common.js"></script>
-<script src="project.js"></script>
+<script src="/static/vue.min.js"></script>
+<script type="text/javascript" src="/static/sweetalert.min.js"></script>
+<script type="text/javascript" src="/static/axios.min.js"></script>
+<script src="/static/common.js"></script>
+<script src="/static/project.js"></script>
 </head>
 <body>
     <div class="container" id="container">
@@ -51,6 +51,7 @@
                 </div>
             </div>
             <input class="button-primary" type="button" id="btnSet" value="SET" @click="set(selectedItem)"/>
+            <input class="button" type="button" id="btnDelete" value="DELETE" @click="delete(selectedItem.key)"/>
         </form>
         <div class="row">
             <table class="u-full-width">
@@ -67,7 +68,7 @@
                         <td>{{ value }}</td>
                         <td>
                             <a href="javascript:void();" @click="delete($key)">delete</a>
-                            <a href="javascript:void();" @click="select($key, value)" style="margin-left:20px;">edit</a>
+                            <a href="javascript:void();" @click="select($key, value)" style="margin-left:20px;">choose</a>
                         </td>
                     </tr>
                 </tbody>
