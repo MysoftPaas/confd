@@ -89,7 +89,7 @@
         </div>
     </div>
 <script type="text/javascript" charset="utf-8">
-    var HOST = "localhost:8080";
+    var HOST = window.location.host;
     var app = app('container');
 	ws = new Ws("ws://" + HOST + "/log");
     ws.OnConnect(function () {
