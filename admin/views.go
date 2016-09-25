@@ -20,6 +20,44 @@ type View struct {
 	WebServer *WebServer
 }
 
+func (v *View) Execute(ctx *iris.Context) {
+	//projectName := ctx.PostValue("projectName")
+	v.WebServer.processor.Process()
+	ctx.JSON(iris.StatusOK, iris.Map{"result": true})
+}
+
+func (v *View) WebSocketHandle(c iris.WebsocketConnection) {
+
+	log.Debug("client connet now! ID: %s", c.ID())
+	c.Join("confd")
+	c.On("log", func(message string) {
+		// to all except this connection ->
+		//c.To(iris.Broadcast).Emit("chat", "Message from: "+c.ID()+"-> "+message)
+
+		// to the client ->
+		//c.Emit("chat", "Message from myself: "+message)
+
+		c.To("confd").Emit("log", "replay from server message!")
+		// send the message to the whole room,
+		// all connections which are inside this room will receive this message
+		//c.To("confd").Emit("chat", "From: "+c.ID()+": "+message)
+	})
+
+	c.OnDisconnect(func() {
+		log.Debug("Connection with ID: %s has been disconnected!", c.ID())
+	})
+	go func() {
+		lq := log.GetLogQueue()
+		for {
+			logMessage := lq.GetLatest()
+			if logMessage != "" {
+				c.To("confd").Emit("log", logMessage)
+			}
+		}
+	}()
+
+}
+
 func (v *View) ServeStatic(ctx *iris.Context) {
 	path := ctx.PathString()
 	if path == "/" {

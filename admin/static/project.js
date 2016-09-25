@@ -10,6 +10,8 @@
                     key: "",
                     value: ""
                 },
+                loggingBody: "",
+                hidden: false,
             },
             methods: {
                 mouseover: function(e) {
@@ -40,17 +42,15 @@
                 },
                 delete: function(key) {
                     self = this;
+                    if (!key) {
+                        ui.alert('失败', 'key不能为空', 'error');
+                        return;
+                    }
                     ui.confirm("delete", "delete " + key + "?", function() {
 
-                        if (!key) {
-                            ui.alert('失败', 'key不能为空', 'error');
-                            return;
-                        }
                         var projectName = utils.getQuery('name');
                         var encodedKey = encodeURIComponent(key);
-                        axios.post(config.apiHost + '/api/project/' + projectName + '/items', {
-                                "key": encodedKey
-                            })
+                        axios.delete(config.apiHost + '/api/project/' + projectName + '/item/' + encodedKey)
                             .then(function(response) {
                                 if (response.data.result) {
                                     ui.hideLoading();
@@ -89,9 +89,38 @@
                         .catch(function(err) {
                             ui.hideLoading()
                             ui.alert('出错', '服务器端错误', 'error')
+                        });
+                },
+                exec: function() {
+                    self = this;
+                    axios.post(config.apiHost + '/api/exec', {
+                            "projectName": self.project.Name,
+                        })
+                        .then(function(response) {
+                            if (response.data.result) {
+                                ui.alert('成功', '执行成功', 'success');
+                            } else {
+                                ui.alert('失败', response.data.msg, 'error')
+                            }
+
+                        })
+                        .catch(function(err) {
+                            ui.hideLoading()
+                            ui.alert('出错', '服务器端错误', 'error')
                             console.log(err)
                         });
                 },
+                hide: function() {
+                    self = this;
+                    self.hidden = !self.hidden;
+                },
+                clean: function() {
+                    self = this;
+                    self.loggingBody = "";
+                },
+                log: function(message) {
+                    this.loggingBody += message + "\n";
+                }
             },
             ready: function() {
                 ui.loading()

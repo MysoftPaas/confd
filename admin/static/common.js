@@ -44,7 +44,7 @@
         }
     };
     exports.config = {
-        apiHost: 'http://localhost:8000',
+        apiHost: '',
     };
     exports.utils = {
 

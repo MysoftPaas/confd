@@ -10,12 +10,14 @@ import (
 
 type WebServer struct {
 	templateConfig template.Config
+	processor      template.Processor
 	port           int
 }
 
-func New(templateConfig template.Config, port int) *WebServer {
+func New(templateConfig template.Config, processor template.Processor, port int) *WebServer {
 	return &WebServer{
 		templateConfig: templateConfig,
+		processor:      processor,
 		port:           port,
 	}
 
@@ -32,6 +34,7 @@ func (w *WebServer) Start() {
 	config := iris.Configuration{Charset: "UTF-8", Gzip: true, DisablePathEscape: true}
 	app := iris.New(config)
 	app.Use(crs)
+	app.Config.Websocket.Endpoint = "/log"
 
 	//app.Favicon("./favicon.ico")
 	view := &View{WebServer: w}
@@ -40,6 +43,7 @@ func (w *WebServer) Start() {
 	app.Get("/", view.ServeStatic)
 	app.Get("/static/*file", view.ServeStatic)
 
+	app.Post("/api/exec", view.Execute)
 	app.Get("/api/projects", view.GetProjects)
 	app.Get("/api/project/:projectName", view.GetProject)
 	app.Get("/api/project/:projectName/item/:key", view.GetItem)
@@ -48,7 +52,9 @@ func (w *WebServer) Start() {
 	app.Post("/api/project/:projectName/items", view.SetItem)
 	//tmpl
 	app.Get("/api/project/:projectName/tmpl/:filepath", view.GetTemplates)
+	app.Websocket.OnConnection(view.WebSocketHandle)
 
-	app.Listen(fmt.Sprintf(":%d", w.port))
+	//app.Listen(fmt.Sprintf(":%d", w.port))
+	app.Listen(fmt.Sprintf(":%d", 8080))
 	//iris.ListenTLSAuto(fmt.Sprintf(":%d", port))
 }
