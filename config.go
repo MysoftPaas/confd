@@ -48,6 +48,7 @@ var (
 	watch             bool
 	appID             string
 	userID            string
+	port              int
 )
 
 // A Config structure is used to configure confd.
@@ -75,6 +76,7 @@ type Config struct {
 	Watch        bool     `toml:"watch"`
 	AppID        string   `toml:"app_id"`
 	UserID       string   `toml:"user_id"`
+	Port         int      `toml:"port"`
 }
 
 func init() {
@@ -105,6 +107,7 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.IntVar(&port, "port", 1520, "the port of webServer")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -125,6 +128,7 @@ func initConfig() error {
 		Interval: 600,
 		Prefix:   "",
 		Scheme:   "http",
+		Port:     1520,
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {
@@ -315,5 +319,7 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	case "port":
+		config.Port = port
 	}
 }

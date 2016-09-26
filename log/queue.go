@@ -28,11 +28,9 @@ func (s *logQueue) Set(text string, level string) {
 	select {
 	case s.messageQueue <- text:
 		{
-			fmt.Println("set log !!!")
 		}
 	default:
 		{
-			fmt.Println("set default log !!!")
 		}
 	}
 }
