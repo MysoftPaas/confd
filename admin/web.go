@@ -54,7 +54,6 @@ func (w *WebServer) Start() {
 	app.Get("/api/project/:projectName/tmpl/:filepath", view.GetTemplates)
 	app.Websocket.OnConnection(view.WebSocketHandle)
 
-	//app.Listen(fmt.Sprintf(":%d", w.port))
-	app.Listen(fmt.Sprintf(":%d", 8080))
+	app.Listen(fmt.Sprintf(":%d", w.port))
 	//iris.ListenTLSAuto(fmt.Sprintf(":%d", port))
 }
