@@ -4,19 +4,21 @@
         return new Vue({
             el: '#' + elId,
             data: {
-                username: "",
-                password: "",
+                form: {
+                    username: '',
+                    password: '',
+                }
             },
             methods: {
                 login: function(item) {
                     self = this;
-                    axios.post(config.apiHost + '/api/login', {
-                            "username": username,
-                            "password": password
+                    axios.post('/api/login', {
+                            "username": self.form.username,
+                            "password": self.form.password
                         })
                         .then(function(response) {
                             if (response.data.result) {
-                                localStorage.setItem('token', response.data.token);
+                                window.localStorage.setItem('token', response.data.token);
                                 ui.alert('成功', '设置成功', 'success');
                             } else {
                                 ui.alert('失败', response.data.msg, 'error')

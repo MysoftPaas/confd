@@ -47,7 +47,8 @@
         apiHost: '',
         init: function(argument) {
             axios.defaults.baseURL = '';
-            axios.defaults.headers.common['Authorization'] = localStorage.getItem('token');
+            var token = window.localStorage.getItem('token') || "";
+            axios.defaults.headers.common['Authorization'] = "Bearer " + token;
             axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
         }
     };

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/kataras/iris"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
@@ -88,6 +89,39 @@ func (v *View) ServeStatic(ctx *iris.Context) {
 func (v *View) Home(ctx *iris.Context) {
 
 	ctx.WriteString(fmt.Sprintf("Hello, configDir: %s", v.WebServer.templateConfig.ConfDir)) //.Render("index.html")
+}
+
+type User struct {
+	Username string
+	Password string
+}
+
+func (v *View) Login(ctx *iris.Context) {
+
+	user := &User{}
+	if err := ctx.ReadJSON(user); err != nil {
+		panic(err.Error())
+	}
+
+	log.Debug(user.Username + ", pwd:" + user.Password)
+
+	if user.Username == "admin" && user.Password == "123" {
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"username": user.Username,
+			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		})
+
+		// Sign and get the complete encoded token as a string using the secret
+		if tokenString, err := token.SignedString([]byte(v.WebServer.secretKey)); err == nil {
+			ctx.JSON(iris.StatusOK, iris.Map{"result": true, "token": tokenString})
+		} else {
+			ctx.JSON(iris.StatusOK, iris.Map{"result": false, "msg": err.Error()})
+		}
+	} else {
+		ctx.JSON(iris.StatusOK, iris.Map{"result": false, "msg": "username or password incorrect"})
+	}
+
 }
 
 func (v *View) GetProjects(ctx *iris.Context) {

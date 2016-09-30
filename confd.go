@@ -52,7 +52,7 @@ func main() {
 
 	go processor.Process()
 	log.Info("web port: %d", config.Port)
-	ws := admin.New(templateConfig, processor, config.Port)
+	ws := admin.New(templateConfig, processor, config.Port, "$1231#@1")
 	go func() {
 		log.Debug("Start web server, listen: %d", config.Port)
 
