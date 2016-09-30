@@ -45,6 +45,11 @@
     };
     exports.config = {
         apiHost: '',
+        init: function(argument) {
+            axios.defaults.baseURL = '';
+            axios.defaults.headers.common['Authorization'] = localStorage.getItem('token');
+            axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+        }
     };
     exports.utils = {
 
