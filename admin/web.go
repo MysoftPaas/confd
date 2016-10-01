@@ -12,16 +12,20 @@ import (
 
 type WebServer struct {
 	templateConfig template.Config
-	processor      template.Processor
-	port           int    `web port`
-	secretKey      string `jwt secretKey`
+	setting        Setting
 }
 
-func New(templateConfig template.Config, port int, secretKey string) *WebServer {
+type Setting struct {
+	Port      int    `web port`
+	Username  string `admin username`
+	Password  string `admin password`
+	SecretKey string `jwt secretKey`
+}
+
+func New(templateConfig template.Config, config Setting) *WebServer {
 	return &WebServer{
 		templateConfig: templateConfig,
-		port:           port,
-		secretKey:      secretKey,
+		setting:        config,
 	}
 
 }
@@ -41,7 +45,7 @@ func (w *WebServer) Start() {
 	// jwt middleware
 	jwtMDW := jwtmiddleware.New(jwtmiddleware.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			return []byte(w.secretKey), nil
+			return []byte(w.setting.SecretKey), nil
 		},
 		SigningMethod: jwt.SigningMethodHS256,
 	})
@@ -71,6 +75,6 @@ func (w *WebServer) Start() {
 	app.Get("/api/project/:projectName/tmpl/:filepath", jwtMDW.Serve, view.GetTemplates)
 	app.Websocket.OnConnection(view.WebSocketHandle)
 
-	app.Listen(fmt.Sprintf(":%d", w.port))
+	app.Listen(fmt.Sprintf(":%d", w.setting.Port))
 	//iris.ListenTLSAuto(fmt.Sprintf(":%d", port))
 }

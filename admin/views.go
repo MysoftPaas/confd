@@ -107,8 +107,9 @@ func (v *View) Login(ctx *iris.Context) {
 	username := ctx.PostValue("username")
 	password := ctx.PostValue("password")
 	log.Debug(username + ", pwd:" + password)
+	log.Debug("config username:" + v.WebServer.setting.Username)
 
-	if username == "admin" && password == "123" {
+	if username == v.WebServer.setting.Username && password == v.WebServer.setting.Password {
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"username": username,
@@ -116,7 +117,7 @@ func (v *View) Login(ctx *iris.Context) {
 		})
 
 		// Sign and get the complete encoded token as a string using the secret
-		if tokenString, err := token.SignedString([]byte(v.WebServer.secretKey)); err == nil {
+		if tokenString, err := token.SignedString([]byte(v.WebServer.setting.SecretKey)); err == nil {
 			ctx.JSON(iris.StatusOK, iris.Map{"result": true, "token": tokenString})
 		} else {
 			ctx.JSON(iris.StatusOK, iris.Map{"result": false, "msg": err.Error()})

@@ -8,6 +8,13 @@
 - 修改了配置文件位置, 引入了project的概念
 - redis 支持指定特定的database
 - WebUI admin
+- 增加参数
+
+```
+ - `port`           web port
+ - `admin-username` 登录用户名
+ - `admin-password` 登录帐号
+```
 
 ## 编译
 
