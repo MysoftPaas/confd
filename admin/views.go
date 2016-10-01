@@ -22,9 +22,15 @@ type View struct {
 }
 
 func (v *View) Execute(ctx *iris.Context) {
-	//projectName := ctx.PostValue("projectName")
-	v.WebServer.processor.Process()
-	ctx.JSON(iris.StatusOK, iris.Map{"result": true})
+	projectName := ctx.PostValue("projectName")
+	log.Debug("projectName:" + projectName)
+	if err := template.Process(v.WebServer.templateConfig); err != nil {
+		ctx.JSON(iris.StatusOK, iris.Map{"result": true})
+	} else {
+		log.Error(err.Error())
+		ctx.JSON(iris.StatusInternalServerError, iris.Map{})
+	}
+
 }
 
 func (v *View) WebSocketHandle(c iris.WebsocketConnection) {
@@ -98,17 +104,14 @@ type User struct {
 
 func (v *View) Login(ctx *iris.Context) {
 
-	user := &User{}
-	if err := ctx.ReadJSON(user); err != nil {
-		panic(err.Error())
-	}
+	username := ctx.PostValue("username")
+	password := ctx.PostValue("password")
+	log.Debug(username + ", pwd:" + password)
 
-	log.Debug(user.Username + ", pwd:" + user.Password)
-
-	if user.Username == "admin" && user.Password == "123" {
+	if username == "admin" && password == "123" {
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"username": user.Username,
+			"username": username,
 			"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		})
 
@@ -240,23 +243,16 @@ func (v *View) GetItems(ctx *iris.Context) {
 	}
 }
 
-type KV struct {
-	Key   string
-	Value string
-}
-
 func (v *View) SetItem(ctx *iris.Context) {
 	// key should contains prefix of resource
-	kv := &KV{}
-	if err := ctx.ReadJSON(kv); err != nil {
-		panic(err.Error())
-	}
-	log.Debug("set k: %s, v: %s", kv.Key, kv.Value)
-	if kv.Key == "" {
+	key := ctx.PostValue("key")
+	value := ctx.PostValue("value")
+	log.Debug("set k: %s, v: %s", key, value)
+	if key == "" {
 		ctx.JSON(iris.StatusOK, iris.Map{"result": false, "msg": "key is empty"})
 		return
 	}
-	if redisErr := v.WebServer.templateConfig.StoreClient.Set(kv.Key, kv.Value); redisErr == nil {
+	if redisErr := v.WebServer.templateConfig.StoreClient.Set(key, value); redisErr == nil {
 		ctx.JSON(iris.StatusOK, iris.Map{"result": true})
 	} else {
 		log.Error(redisErr.Error())

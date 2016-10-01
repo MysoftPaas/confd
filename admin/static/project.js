@@ -24,21 +24,14 @@
                 loadData: function() {
                     var self = this
                     var projectName = utils.getQuery('name');
-                    axios.all([function() {
-                            return axios.get(config.apiHost + '/api/project/' + projectName);
-                        }(), function() {
-                            return axios.get(config.apiHost + '/api/project/' + projectName + '/items');
-                        }()]).then(axios.spread(function(resp1, resp2) {
-                            ui.hideLoading();
-                            self.project = resp1.data.project;
-                            self.items = resp2.data;
-
-                        }))
-                        .catch(function(err) {
-                            ui.hideLoading()
-                            ui.alert('出错', '服务器端错误', 'error')
-                            console.log(err)
-                        });
+                    ui.hideLoading();
+                    utils.get(config.apiHost + '/api/project/' + projectName, function(response) {
+                        console.log(response);
+                        self.project = response.data.project;
+                    });
+                    utils.get(config.apiHost + '/api/project/' + projectName + '/items', function(response) {
+                        self.items = response.data;
+                    });
                 },
                 delete: function(key) {
                     self = this;
@@ -50,21 +43,16 @@
 
                         var projectName = utils.getQuery('name');
                         var encodedKey = encodeURIComponent(key);
-                        axios.delete(config.apiHost + '/api/project/' + projectName + '/item/' + encodedKey)
-                            .then(function(response) {
-                                if (response.data.result) {
-                                    ui.hideLoading();
-                                    self.items[key] = '';
-                                    ui.alert('成功', "删除成功", 'success');
-                                } else {
-                                    ui.alert('失败', response.data.msg, 'error');
-                                }
+                        utils.delete(config.apiHost + '/api/project/' + projectName + '/item/' + encodedKey, function(response) {
 
-                            }).catch(function(err) {
-                                ui.hideLoading()
-                                ui.alert('出错', '服务器端错误', 'error')
-                                console.log(err)
-                            });
+                            if (response.data.result) {
+                                self.items[key] = '';
+                                ui.alert('成功', "删除成功", 'success');
+                            } else {
+                                ui.alert('失败', response.data.msg, 'error');
+                            }
+
+                        });
                     })
                 },
                 select: function(key, value) {
@@ -73,42 +61,31 @@
                 },
                 set: function(item) {
                     self = this;
-                    axios.post(config.apiHost + '/api/project/' + self.project.Name + '/items', {
-                            "key": item.key,
-                            "value": item.value
-                        })
-                        .then(function(response) {
-                            if (response.data.result) {
-                                self.items[item.key] = item.value;
-                                ui.alert('成功', '设置成功', 'success');
-                            } else {
-                                ui.alert('失败', response.data.msg, 'error')
-                            }
+                    utils.post(config.apiHost + '/api/project/' + self.project.Name + '/items', {
+                        "key": item.key,
+                        "value": item.value
+                    }, function(response) {
 
-                        })
-                        .catch(function(err) {
-                            ui.hideLoading()
-                            ui.alert('出错', '服务器端错误', 'error')
-                        });
+                        if (response.data.result) {
+                            self.items[item.key] = item.value;
+                            ui.alert('成功', '设置成功', 'success');
+                        } else {
+                            ui.alert('失败', response.data.msg, 'error')
+                        }
+                    });
                 },
                 exec: function() {
                     self = this;
-                    axios.post(config.apiHost + '/api/exec', {
-                            "projectName": self.project.Name,
-                        })
-                        .then(function(response) {
-                            if (response.data.result) {
-                                ui.alert('成功', '执行成功', 'success');
-                            } else {
-                                ui.alert('失败', response.data.msg, 'error')
-                            }
+                    utils.post(config.apiHost + '/api/exec', {
+                        "projectName": self.project.Name,
+                    }, function(response) {
 
-                        })
-                        .catch(function(err) {
-                            ui.hideLoading()
-                            ui.alert('出错', '服务器端错误', 'error')
-                            console.log(err)
-                        });
+                        if (response.data.result) {
+                            ui.alert('成功', '执行成功', 'success');
+                        } else {
+                            ui.alert('失败', response.data.msg, 'error')
+                        }
+                    });
                 },
                 hide: function() {
                     self = this;

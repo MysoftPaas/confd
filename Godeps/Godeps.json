@@ -273,11 +273,11 @@
 		},
 		{
 			"ImportPath": "github.com/iris-contrib/middleware/cors",
-			"Rev": "c690f8a44a767f524f5119c814cf2b12a85b769a"
+			"Rev": "52661259d6eefb80970f2083e5d7b06832b962c3"
 		},
 		{
 			"ImportPath": "github.com/iris-contrib/middleware/jwt",
-			"Rev": "c690f8a44a767f524f5119c814cf2b12a85b769a"
+			"Rev": "52661259d6eefb80970f2083e5d7b06832b962c3"
 		},
 		{
 			"ImportPath": "github.com/iris-contrib/websocket",

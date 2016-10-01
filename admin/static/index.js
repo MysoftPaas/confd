@@ -15,33 +15,19 @@
                 search: function() {},
                 loadData: function() {
                     var self = this
-                    axios.get(config.apiHost + '/api/projects')
-                        .then(function(response) {
-                            ui.hideLoading()
-                            if (response.data.result === false) {
-                                ui.alert('出错', response.data.msg, 'error')
-                            }
-                            self.items = response.data;
-                        })
-                        .catch(function(err) {
-                            ui.hideLoading()
-                            ui.alert('出错', '服务器端错误', 'error')
-                            console.log(err)
-                        })
+                    utils.get(config.apiHost + '/api/projects', function(response) {
+                        if (response.data.result === false) {
+                            ui.alert('出错', response.data.msg, 'error')
+                        }
+                        self.items = response.data;
+                    });
                 },
                 selectProject: function(proj) {
                     var self = this;
                     self.currentProject.project = proj
-                    axios.get(config.apiHost + '/api/project/' + proj.Name)
-                        .then(function(response) {
-                            ui.hideLoading();
+                    utils.get(config.apiHost + '/api/project/' + proj.Name, function(response) {
                             self.currentProject.resources = response.data.resources;
-
-                        }).catch(function(err) {
-                            ui.hideLoading()
-                            ui.alert('出错', '服务器端错误', 'error')
-                        })
-
+                    });
                 }
 
             },

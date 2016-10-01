@@ -1,5 +1,15 @@
 (function(exports) {
     'use strict'
+    var _httpErrorHandle = function(response) {
+
+        if (response.status == 401) {
+            window.location.href = "/static/login.html";
+        } else if (response.status == 500) {
+            ui.hideLoading()
+            ui.alert('出错', '服务器端错误', 'error')
+        }
+        console.log(response);
+    };
     exports.ui = {
 
         confirm: function(title, msg, onApprove) {
@@ -45,11 +55,11 @@
     };
     exports.config = {
         apiHost: '',
-        init: function(argument) {
-            axios.defaults.baseURL = '';
+        init: function() {
             var token = window.localStorage.getItem('token') || "";
-            axios.defaults.headers.common['Authorization'] = "Bearer " + token;
-            axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+            Vue.http.options.root = '';
+            Vue.http.headers.common['Authorization'] = "Bearer " + token;
+            Vue.http.options.emulateJSON = true;
         }
     };
     exports.utils = {
@@ -63,7 +73,41 @@
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         },
+        post: function(path, data, successCallback, errorCallback) {
+            Vue.http.post(path, data).then(function(response) {
+                successCallback(response);
+                ui.hideLoading()
+            }, function(response) {
+                if (errorCallback) {
+                    errorCallback(response);
+                }
+                _httpErrorHandle(response);
+            });
+        },
+        delete: function(path, successCallback, errorCallback) {
+            Vue.http.delete(path).then(function(response) {
+                successCallback(response);
+                ui.hideLoading()
+            }, function(response) {
+                if (errorCallback) {
+                    errorCallback(response);
+                }
+                _httpErrorHandle(response);
+            });
+        },
+        get: function(path, successCallback, errorCallback) {
+            Vue.http.get(path).then(function(response) {
+                successCallback(response);
+                ui.hideLoading()
+            }, function(response) {
+                if (errorCallback) {
+                    errorCallback(response);
+                }
+                _httpErrorHandle(response);
+            });
+        }
 
-    }
+    };
+
 
 })(window)

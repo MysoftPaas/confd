@@ -17,10 +17,9 @@ type WebServer struct {
 	secretKey      string `jwt secretKey`
 }
 
-func New(templateConfig template.Config, processor template.Processor, port int, secretKey string) *WebServer {
+func New(templateConfig template.Config, port int, secretKey string) *WebServer {
 	return &WebServer{
 		templateConfig: templateConfig,
-		processor:      processor,
 		port:           port,
 		secretKey:      secretKey,
 	}
@@ -31,10 +30,11 @@ func (w *WebServer) Start() {
 
 	// cross domain
 	crs := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		//AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
-		AllowedHeaders:   []string{"DNT", "X-CustomHeader", "Keep-Alive", "User-Agent", "X-Requested-With", "If-Modified-Since", "Cache-Control", "Content-Type"},
+		AllowedHeaders:   []string{"DNT", "X-CustomHeader", "Keep-Alive", "User-Agent", "X-Requested-With", "If-Modified-Since", "Cache-Control", "Content-Type", "Authorization"},
 		AllowCredentials: true,
+		Debug:            true,
 	})
 	crs.Log = iris.Logger
 
