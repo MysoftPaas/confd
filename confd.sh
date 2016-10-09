@@ -5,7 +5,7 @@
 # chkconfig:   2345 95 95
 # description: confd is a tool for service discovery and configuration
 # processname: confd
-# config: /etc/confd.conf
+# config: /etc/confd/confd.conf
 # pidfile: /var/run/confd.pid
 
 ### BEGIN INIT INFO
@@ -29,8 +29,8 @@ exec="/usr/local/bin/$prog"
 pidfile="/var/run/$prog.pid"
 lockfile="/var/lock/subsys/$prog"
 logfile="/var/log/$prog"
-conffile="/etc/confd.conf"
-confdir="/etc/confd.d"
+conffile="/etc/confd/confd.conf"
+confdir="/etc/confd/confd.d"
 
 # pull in sysconfig settings
 [ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
