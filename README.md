@@ -62,13 +62,12 @@ nodes=[
 
 ## 项目配置文件说明
 
-- 在/etc/confd/conf.d/目录
+- 新引入项目到confd, 需要在/etc/confd/conf.d/目录, 增加一个toml配置文件
 
-当需要添加新的项目模板时，只需要在目录下添加项目模板toml配置文件,  
 如下示例，有app1,app2,app3三个项目配置:  
 
 ```
-├── /etc/confd  
+├── /etc/confd/conf.d/
 │   ├── app1.toml  
 │   ├── app2.toml  
 │   ├── app3.toml  
@@ -82,7 +81,7 @@ nodes=[
 [project]
 name = appcloud
 
-#这里指定项目配置文件目录
+#这里指定项目的配置文件目录
 conf_dir = /opt/www/appcloud/protected/config/confd/
 
 ```
