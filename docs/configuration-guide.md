@@ -1,7 +1,7 @@
 # Configuration Guide
 
 The confd configuration file is written in [TOML](https://github.com/mojombo/toml)
-and loaded from `/etc/confd/confd.toml` by default. You can specify the config file via the `-config-file` command line flag.
+and loaded from `/etc/confd/confd.conf` by default. You can specify the config file via the `-config-file` command line flag.
 
 > Note: You can use confd without a configuration file. See [Command Line Flags](https://github.com/kelseyhightower/confd/blob/master/docs/command-line-flags.md).
 
@@ -11,7 +11,7 @@ Optional:
 * `client_cakeys` (string) - The client CA key file.
 * `client_cert` (string) - The client cert file.
 * `client_key` (string) - The client key file.
-* `confdir` (string) - The path to confd configs. ("/etc/confd")
+* `confdir` (string) - The path to confd configs. ("/etc/confd/conf.d")
 * `interval` (int) - The backend polling interval in seconds. (600)
 * `log-level` (string) - level which confd should log messages ("info")
 * `nodes` (array of strings) - List of backend nodes. (["http://127.0.0.1:4001"])

@@ -26,6 +26,8 @@
 
 ## 运行示例(redis作为配置源)
 
+配置文件默认位置 `/etc/confd/confd.conf`, 项目文件默认位置 `/etc/confd/conf.d`
+
 > ./bin/confd -config-file=/etc/confd/confd.conf -onetime
 
 `如果指定-onetime参数，则只运行一次即退出，否则作为服务运行`
@@ -51,8 +53,8 @@ nodes=[
 **配置项说明**  
 
 `backend`: 存储源类型
-`confdir`: 项目资源配置文件目录
-`log-level`: 日志级别
+`confdir`: 项目资源配置文件目录(默认/etc/confd/conf.d)
+`log-level`: 日志级别,默认info
 `interval`: 检查同步配置文件的时间间隔(秒)
 `port`: Web 端口
 `client_key`: redis 授权密码

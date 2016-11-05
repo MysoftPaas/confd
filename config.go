@@ -18,7 +18,7 @@ import (
 
 var (
 	configFile        = ""
-	defaultConfigFile = "/etc/confd/confd.toml"
+	defaultConfigFile = "/etc/confd/confd.conf"
 	authToken         string
 	authType          string
 	backend           string
@@ -90,7 +90,7 @@ func init() {
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
-	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
+	flag.StringVar(&confdir, "confdir", "/etc/confd/conf.d", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
@@ -130,7 +130,7 @@ func initConfig() error {
 	// Set defaults.
 	config = Config{
 		Backend:       "etcd",
-		ConfDir:       "/etc/confd",
+		ConfDir:       "/etc/confd/conf.d",
 		Interval:      600,
 		Prefix:        "",
 		Scheme:        "http",
@@ -140,9 +140,9 @@ func initConfig() error {
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {
-		log.Debug("Skipping confd config file.")
+		log.Info("Skipping confd config file.")
 	} else {
-		log.Debug("Loading " + configFile)
+		log.Info("Loading " + configFile)
 		configBytes, err := ioutil.ReadFile(configFile)
 		if err != nil {
 			return err
