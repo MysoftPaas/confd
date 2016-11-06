@@ -4,7 +4,7 @@
         return new Vue({
             el: '#' + elId,
             data: {
-                project: null,
+                project: {},
                 items: {},
                 selectedItem: {
                     key: "",
@@ -99,7 +99,7 @@
                     this.loggingBody += message + "\n";
                 }
             },
-            ready: function() {
+            mounted: function() {
                 ui.loading()
                 console.log('ready ..')
                 this.loadData()

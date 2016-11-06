@@ -6,7 +6,7 @@
             data: {
                 items: [],
                 currentProject: {
-                    project: null,
+                    project: {},
                     resources: []
                 },
                 apiHost: config.apiHost,
@@ -36,7 +36,7 @@
                 //return moment(timestamp).format('YY-MM-DD HH:mm:ss')
                 //}
             },
-            ready: function() {
+            mounted: function() {
                 ui.loading()
                 console.log('ready ..')
                 this.loadData()

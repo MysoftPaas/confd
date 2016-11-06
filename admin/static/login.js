@@ -26,7 +26,7 @@
                     });
                 },
             },
-            ready: function() {
+            mounted: function() {
                 console.log('ready ..')
             }
         })

@@ -48,7 +48,7 @@
             </div>
             <div class="six columns" >
                 <div v-if="currentProject.project">
-                    <h4 style="margin-top:0px;"><a href="/static/project.html?name={{currentProject.project.Name}}" target="_self">{{currentProject.project.Name}}</a></h4>
+                    <h4 style="margin-top:0px;"><a v-bind:href="'/static/project.html?name='+ currentProject.project.Name" target="_self">{{currentProject.project.Name}}</a></h4>
                     <div class="row">
                         <label class="label">Prefix</label>
                         <div>
@@ -72,7 +72,7 @@
                     <div class="row">
                         <label class="label">Src</label>
                         <div>
-                            <a href="{{apiHost}}/api/project/{{currentProject.project.Name}}/tmpl/{{encodeURIComponent(res.Src)}}" target="_blank">{{res.Src}}</a>
+                            <a v-bind:href="apiHost+ '/api/project/'+ currentProject.project.Name + '/tmpl/' + encodeURIComponent(res.Src)" target="_blank">{{res.Src}}</a>
                         </div>
                     </div>
                     <div class="row">

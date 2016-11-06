@@ -76,12 +76,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="value in items" @click="select($key, value)" v-on:mouseover="mouseover" v-on:mouseout="mouseout">
-                        <td>{{$key}}</td>
+                    <tr v-for="(value, key) in items" @click="select(key, value)" v-on:mouseover="mouseover" v-on:mouseout="mouseout">
+                        <td>{{ key }}</td>
                         <td>{{ value }}</td>
                         <td>
-                            <a href="javascript:void();" @click="delete($key)">delete</a>
-                            <a href="javascript:void();" @click="select($key, value)" style="margin-left:20px;">choose</a>
+                            <a href="javascript:void();" @click="delete(key)">delete</a>
+                            <a href="javascript:void();" @click="select(key, value)" style="margin-left:20px;">choose</a>
                         </td>
                     </tr>
                 </tbody>
