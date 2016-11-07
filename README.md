@@ -18,8 +18,12 @@
 ## 编译
 
 ```bash
-> cd admin
-> go-bindata -pkg admin static/...
+> cd admin/web
+> npm install
+> npm run build  
+> cd ../  
+> rm bindata.go  
+> go-bindata -pkg admin web/dist/... 
 > cd ../ && ./build
 
 ```
