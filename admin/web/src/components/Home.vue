@@ -1,11 +1,14 @@
 <template>
-<section class="hero is-primary is-bold">
+<section class="hero is-primary">
   <div class="hero-body">
+    <div class="container">
       <h1 class="title">
-        Bringing confd to the web
+        Confd Admin
       </h1>
       <h2 class="subtitle">
+          <router-link class="nav-item" to="/dashboard">Start</router-link>
       </h2>
+    </div>
   </div>
 </section>
 </template>

@@ -4,8 +4,59 @@ function httpErrorHandle (response) {
   console.log(response)
 }
 
+var utils = {
+  getQuery (name, url) {
+    if (!url) url = window.location.href
+    name = name.replace(/[[]]/g, '\\$&')
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)')
+    var results = regex.exec(url)
+    if (!results) return null
+    if (!results[2]) return ''
+    return decodeURIComponent(results[2].replace(/\+/g, ' '))
+  }
+}
+
+/* global swal */
+var ui = {
+
+  alert (title, msg, type) {
+    swal(title, msg, type)
+  },
+
+  confirm (title, msg, onApprove) {
+    swal({
+      title: title,
+      text: msg,
+      type: 'warning',
+      showCancelButton: true,
+      closeOnConfirm: false,
+      showLoaderOnConfirm: true
+    }, function () {
+      onApprove()
+    })
+  },
+
+  prompt (title, msg, placeholder, cb) {
+    swal({
+      title: title,
+      text: msg,
+      type: 'input',
+      showCancelButton: true,
+      closeOnConfirm: false,
+      inputPlaceholder: 'Write something'
+    }, function (inputValue) {
+      if (inputValue === false) return false
+      if (inputValue === '') {
+        swal.showInputError('You need to write something!')
+        return false
+      }
+      cb(inputValue)
+    })
+  }
+}
+
 var http = {
-  getQuery: function (name, url) {
+  getQuery (name, url) {
     if (!url) url = window.location.href
     name = name.replace(/[[]]/g, '\\$&')
     var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)')
@@ -15,7 +66,7 @@ var http = {
     return decodeURIComponent(results[2].replace(/\+/g, ' '))
   },
 
-  post: function (path, data, successCallback, errorCallback) {
+  post (path, data, successCallback, errorCallback) {
     Vue.http.post(path, data).then(function (response) {
       successCallback(response)
     }, function (response) {
@@ -51,6 +102,8 @@ var http = {
 }
 
 export {
-  http
+  http,
+  ui,
+  utils
 }
 

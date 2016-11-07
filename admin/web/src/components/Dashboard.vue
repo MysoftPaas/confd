@@ -4,6 +4,7 @@
       Project List
     </h1>
 
+    <spinner :show="loading"></spinner>
     <div class="columns">
       <div class="column is-half" >
         <div v-for="(project, index) in projects" class="box" :class="{ 'selected': isSelected(index) }" v-bind:id="'box-' + project.Name">
@@ -80,9 +81,11 @@
 
 <script>
 import { http } from '../common'
+import Spinner from './Spinner.vue'
 
 export default {
   name: 'Dashboard',
+  components: { Spinner },
   data () {
     return {
       selectedIndex: -1,
@@ -91,8 +94,6 @@ export default {
       error: null,
       projects: []
     }
-  },
-  components: {
   },
   methods: {
     fetchData () {

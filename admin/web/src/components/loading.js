@@ -7,9 +7,7 @@ export default {
   },
   bind (el, binding, vnode) {
   },
-  update (value, binding, vnode) {
+  update (el, binding, vnode) {
     console.log('---- update ----')
-    console.log(value)
-    console.log(binding)
   }
 }

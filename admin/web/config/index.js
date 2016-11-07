@@ -28,6 +28,14 @@ module.exports = {
         pathRewrite: {
           '^/api': '/api'
         }
+      },
+      '/log': {
+        target: 'http://localhost:1520',
+        changeOrigin: true
+      },
+      '/iris*': {
+        target: 'http://localhost:1520',
+        changeOrigin: true
       }
     },
     // CSS Sourcemaps off by default because relative paths are "buggy"

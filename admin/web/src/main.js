@@ -11,6 +11,7 @@ Vue.use(VueResource)
 // use application/x-www-form-urlencoded
 Vue.http.options.emulateJSON = true
 Vue.http.headers.common['Authorization'] = 'Bearer ' + auth.getToken()
+
 /* eslint-disable no-new */
 new Vue({
   router,

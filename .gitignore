@@ -1,2 +1,3 @@
 bin/
 admin/static/caddy
+npm-debug.log

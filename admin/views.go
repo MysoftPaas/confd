@@ -69,9 +69,12 @@ func (v *View) ServeStatic(ctx *iris.Context) {
 	path := ctx.PathString()
 	if path == "/" {
 		path = "index.html"
-		path = filepath.Join("static/", path)
 	}
 
+	if strings.HasPrefix(path, "/front") {
+		path = "index.html"
+	}
+	path = filepath.Join("web/dist/", path)
 	path = strings.Replace(path, "/", string(os.PathSeparator), -1)
 	path = strings.TrimPrefix(path, "/")
 	if uri, err := url.Parse(path); err == nil {

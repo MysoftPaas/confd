@@ -1,10 +1,11 @@
 <template>
   <div class="container">
-    <h1 class="title is-3">
+    <spinner :show="loading"></spinner>
+    <h1 v-if="info" class="title is-3">
       {{ info.project.Name }}
     </h1>
 
-    <table class="table">
+    <table v-if="info" class="table">
       <tbody>
         <tr>
           <td class="tag label">prefix</td>
@@ -21,29 +22,50 @@
       <div class="column is-one-third">
         <label class="label">Key</label>
         <p class="control">
-          <input v-model="input.key" class="input" type="text" placeholder="key">
+          <input :class="{'is-danger':!input.key && submit}" v-model="input.key" class="input" type="text" placeholder="key" required>
         </p>
       </div>
       <div class="column is-two-third">
         <label class="label">Value</label>
         <p class="control">
-          <textarea v-model="input.value" class="input" rows="1" placeholder="value"></textarea>
+          <textarea v-model="input.value" class="input" rows="1" placeholder="value" required></textarea>
         </p>
       </div>
     </div>
     <div class="columns">
       <div class="column is-one-third">
-        <button class="button is-fullwidth is-primary">SET</button>
+        <button :class="{'is-loading': startSet}" class="button is-fullwidth is-primary" @click="upset()">SET</button>
       </div>
       <div class="column is-one-third">
-        <button class="button is-fullwidth" >DELETE</button>
+        <button class="button is-fullwidth is-dark" @click="execute()">EXECUTE</button>
       </div>
       <div class="column is-one-third">
-        <button class="button is-fullwidth is-success" >EXECUTE</button>
+        <button class="button is-fullwidth" @click="remove()">DELETE</button>
       </div>
     </div>
 
     <div>
+
+
+    <article class="message">
+      <div class="message-header">
+        <nav class="level log-tools">
+                <div class="level-left">
+                  <a class="level-item" href="javascript:void(0);" @click="hideLog()">
+                    <span class="icon is-small">
+                      <i :class="['fa', loggingVisiable ? 'fa-angle-double-up' : 'fa-angle-double-down' ]"></i>
+                     </span>
+                  </a>
+                  <a class="level-item" href="javascript:void(0);" @click="cleanLog()">
+                    <span class="icon is-small"><i class="fa fa fa-ban"></i></span>
+                  </a>
+                </div>
+              </nav>
+        Logging Screen
+      </div>
+      <div id="loggingBody" v-html="loggingBody" v-if="loggingVisiable" class="message-body">
+      </div>
+    </article>
 
      <table class="table is-bordered">
       <thead>
@@ -69,25 +91,33 @@
 </template>
 
 <script>
-import { http } from '../common'
+/* global ws Ws */
+import { http, ui, utils } from '../common'
+import Spinner from './Spinner.vue'
 
 export default {
   name: 'project',
+  components: { Spinner },
   data () {
     return {
+      submit: false,
+      startSet: false,
+      startDelete: false,
+      startExecute: false,
+      loggingVisiable: false,
       items: [],
       input: { key: '', value: '' },
       selectedIndex: -1,
       info: null,
       loading: false,
-      name: this.$route.params.name
+      name: this.$route.params.name,
+      loggingBody: ''
     }
   },
   methods: {
     fetchData () {
       var self = this
       self.loading = true
-      self.info = {project: {Name: '', Prefix: ''}, resources: []}
       http.get('/api/project/' + self.name, function (response) {
         self.info = { project: response.data.project, resources: [] }
       })
@@ -100,12 +130,83 @@ export default {
     select (event, key, value) {
       this.input.key = key
       this.input.value = value
-      console.log('select ' + key)
     },
 
     isSelected (key) {
       return this.input.key === key
+    },
+
+    upset () {
+      var self = this
+      this.submit = true
+      if (!self.input.key) {
+        return
+      }
+      this.startSet = true
+      http.post('/api/project/' + self.name + '/items', {
+        'key': self.input.key,
+        'value': self.input.value
+      }, function (response) {
+        self.startSet = false
+        if (response.data.result) {
+          self.items[self.input.key] = self.input.value
+          ui.alert('成功', '设置成功', 'success')
+        } else {
+          ui.alert('失败', response.data.msg, 'error')
+        }
+      })
+    },
+
+    remove () {
+      this.submit = true
+      var self = this
+      if (!self.input.key) {
+        return
+      }
+      var key = self.input.key
+      ui.confirm('delete', 'delete ' + key + '?', function () {
+        var projectName = utils.getQuery('name')
+        var encodedKey = encodeURIComponent(key)
+        http.delete('/api/project/' + projectName + '/item/' + encodedKey, function (response) {
+          if (response.data.result) {
+            self.items[key] = ''
+            ui.alert('成功', '删除成功', 'success')
+          } else {
+            ui.alert('失败', response.data.msg, 'error')
+          }
+        })
+      })
+    },
+
+    execute () {
+      var self = this
+      http.post('/api/exec', {
+        'projectName': self.name
+      }, function (response) {
+        if (response.data.result) {
+          ui.alert('成功', '执行成功', 'success')
+        } else {
+          ui.alert('失败', response.data.msg, 'error')
+        }
+      })
+    },
+
+    hideLog () {
+      this.loggingVisiable = !this.loggingVisiable
+    },
+
+    cleanLog () {
+      this.loggingBody = ''
+    },
+
+    log (message) {
+      this.loggingBody += message + '\n'
+    },
+
+    viewLog () {
+      ws.Emit('log', 'history')
     }
+
   },
   watch: {
     '$route': 'fetchData'
@@ -114,7 +215,22 @@ export default {
     if (this.info == null) {
       this.fetchData()
     }
+    var self = this
+    var HOST = window.location.host
+    var ws = new Ws('ws://' + HOST + '/log')
+    ws.OnConnect(function () {
+      self.loggingBody = 'Websocket connection enstablished.'
+    })
+
+    ws.OnDisconnect(function () {
+      self.loggingBody = 'Websocket disconnection.'
+    })
+
+    ws.On('log', function (message) {
+      self.loggingBody += message + '</br>\r\n'
+    })
   }
+
 }
 </script>
 
@@ -126,6 +242,12 @@ export default {
 
 .table tr.green:hover {
   background-color: #00d1b2;
+  color: #fff;
+}
+.log-tools {
+  float: right;
+}
+.log-tools a:hover {
   color: #fff;
 }
 </style>
