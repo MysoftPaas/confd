@@ -3,6 +3,7 @@ import auth from './auth'
 import Project from './components/Project.vue'
 import Home from './components/Home.vue'
 import Login from './components/Login.vue'
+import About from './components/About.vue'
 import Hello from './components/Hello.vue'
 import Dashboard from './components/Dashboard.vue'
 
@@ -21,6 +22,7 @@ var router = new VueRouter({
   mode: 'history',
   routes: [
     { path: '/', component: Home, meta: { title: 'home' } },
+    { path: '/about', component: About, meta: { title: 'about' } },
     { path: '/login', component: Login },
     {
       path: '/dashboard',

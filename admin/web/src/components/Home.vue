@@ -1,12 +1,13 @@
 <template>
-    <div class="container has-text-centered">
+<section class="hero is-primary is-bold">
+  <div class="hero-body">
       <h1 class="title">
-        Title
+        Bringing confd to the web
       </h1>
       <h2 class="subtitle">
-        Subtitle
       </h2>
-    </div>
+  </div>
+</section>
 </template>
 
 <script>
