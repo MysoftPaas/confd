@@ -22,7 +22,7 @@
                   <a class="level-item" style="float:right!important;" :class="{ 'white': isSelected(index) }" v-on:click.stop.prevent="select($event, index, project)" >
                     <span class="icon" ><i  class="fa fa-chevron-circle-right"></i></span>
                   </a>
-                  <router-link class="level-item" :class="{ 'white': isSelected(index) }" v-on:click.stop.prevent="select($event, index, project)"  v-bind:to="'/project/'+project.Name">
+                  <router-link class="level-item" :class="{ 'white': isSelected(index) }" v-on:click.stop.prevent="select($event, index, project)"  v-bind:to="'/view/project/'+project.Name">
                     <span class="icon" ><i  class="fa fa-edit"></i></span>
                   </router-link>
                 </div>
@@ -114,7 +114,7 @@ export default {
       self.loading = true
       this.selectedIndex = index
       this.selectedProject = { project: project, resources: [] }
-      http.get('api/project/' + project.Name, function (response) {
+      http.get('/api/project/' + project.Name, function (response) {
         self.loading = false
         self.selectedProject.resources = response.data.resources
       })

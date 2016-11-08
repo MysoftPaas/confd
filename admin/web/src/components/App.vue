@@ -10,11 +10,11 @@
           </router-link>
         </div>
         <div class="nav-right nav-menu">
-          <router-link class="nav-item" to="/dashboard">
+          <router-link class="nav-item" to="/view/dashboard">
             Dashboard
           </router-link>
-          <router-link class="nav-item is-active" v-if="loggedIn" to="/logout">Log out</router-link>
-          <router-link class="nav-item is-active" v-if="!loggedIn" to="/login">Log in</router-link>
+          <router-link class="nav-item is-active" v-if="loggedIn" to="/view/logout">Log out</router-link>
+          <router-link class="nav-item is-active" v-if="!loggedIn" to="/view/login">Log in</router-link>
           <span class="nav-item">
             <a href="https://github.com/MysoftPaas/confd">
               <span class="icon">

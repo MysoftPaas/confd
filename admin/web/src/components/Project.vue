@@ -1,11 +1,11 @@
 <template>
   <div class="container">
     <spinner :show="loading"></spinner>
-    <h1 v-if="info" class="title is-3">
+    <h1 v-if="info && info.project" class="title is-3">
       {{ info.project.Name }}
     </h1>
 
-    <table v-if="info" class="table">
+    <table v-if="info && info.project" class="table">
       <tbody>
         <tr>
           <td class="tag label">prefix</td>
@@ -150,9 +150,9 @@ export default {
         self.startSet = false
         if (response.data.result) {
           self.items[self.input.key] = self.input.value
-          ui.alert('成功', '设置成功', 'success')
+          ui.alert('success', 'success', 'success')
         } else {
-          ui.alert('失败', response.data.msg, 'error')
+          ui.alert('failure', response.data.msg, 'error')
         }
       })
     },
@@ -170,23 +170,28 @@ export default {
         http.delete('/api/project/' + projectName + '/item/' + encodedKey, function (response) {
           if (response.data.result) {
             self.items[key] = ''
-            ui.alert('成功', '删除成功', 'success')
+            ui.alert('success', 'success', 'success')
           } else {
-            ui.alert('失败', response.data.msg, 'error')
+            ui.alert('failure', response.data.msg, 'error')
           }
         })
       })
     },
 
     execute () {
+      this.submit = true
+      this.startExecute = true
       var self = this
       http.post('/api/exec', {
         'projectName': self.name
       }, function (response) {
         if (response.data.result) {
-          ui.alert('成功', '执行成功', 'success')
+          self.startExecute = false
+          self.loggingVisiable = true
+          ui.alert('done', 'Please check the log.', 'success')
         } else {
-          ui.alert('失败', response.data.msg, 'error')
+          self.startExecute = false
+          ui.alert('failure', response.data.msg, 'error')
         }
       })
     },
@@ -200,7 +205,6 @@ export default {
     },
 
     log (message) {
-      this.loggingBody += message + '\n'
     },
 
     viewLog () {
@@ -227,7 +231,13 @@ export default {
     })
 
     ws.On('log', function (message) {
-      self.loggingBody += message + '</br>\r\n'
+      // 2016-11-08T11:00:23+08:00 DEBUG
+      const regex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}\s+ERROR/i
+      if (regex.exec(message) !== null) {
+        self.loggingBody += '<p style="color: red;">' + message + '</p></br>\r\n'
+      } else {
+        self.loggingBody += '<p>' + message + '</p></br>\r\n'
+      }
     })
   }
 

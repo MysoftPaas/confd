@@ -9,7 +9,7 @@ import Dashboard from './components/Dashboard.vue'
 function requireAuth (to, from, next) {
   if (!auth.loggedIn()) {
     next({
-      path: '/login',
+      path: '/view/login',
       query: { redirect: to.fullPath }
     })
   } else {
@@ -21,16 +21,16 @@ var router = new VueRouter({
   mode: 'history',
   routes: [
     { path: '/', component: Home, meta: { title: 'home' } },
-    { path: '/about', component: About, meta: { title: 'about' } },
-    { path: '/login', component: Login },
+    { path: '/view/about', component: About, meta: { title: 'about' } },
+    { path: '/view/login', component: Login },
     {
-      path: '/dashboard',
+      path: '/view/dashboard',
       component: Dashboard,
       beforeEnter: requireAuth
     },
-    { path: '/project/:name', component: Project, beforeEnter: requireAuth },
+    { path: '/view/project/:name', component: Project, beforeEnter: requireAuth },
     {
-      path: '/logout',
+      path: '/view/logout',
       beforeEnter (to, from, next) {
         auth.logout()
         next('/')

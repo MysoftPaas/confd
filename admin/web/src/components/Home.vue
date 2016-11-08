@@ -3,10 +3,11 @@
   <div class="hero-body">
     <div class="container">
       <h1 class="title">
-        Confd Admin
+        Confd Admin 2016
+          <router-link to="/view/dashboard"><i class="fa fa-arrow-right"></i>
+          </router-link>
       </h1>
       <h2 class="subtitle">
-          <router-link class="nav-item" to="/dashboard">Start</router-link>
       </h2>
     </div>
   </div>

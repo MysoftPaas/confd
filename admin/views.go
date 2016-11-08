@@ -67,13 +67,12 @@ func (v *View) WebSocketHandle(c iris.WebsocketConnection) {
 
 func (v *View) ServeStatic(ctx *iris.Context) {
 	path := ctx.PathString()
-	if path == "/" {
+	log.Debug("service path:" + path)
+
+	if path == "/" || (!strings.Contains(path, ".js") && !strings.Contains(path, ".css") && !strings.Contains(path, ".png") && !strings.Contains(path, ".icon") && !strings.Contains(path, ".gif") && !strings.Contains(path, ".ttf") && !strings.Contains(path, ".woff")) {
 		path = "index.html"
 	}
 
-	if strings.HasPrefix(path, "/front") {
-		path = "index.html"
-	}
 	path = filepath.Join("web/dist/", path)
 	path = strings.Replace(path, "/", string(os.PathSeparator), -1)
 	path = strings.TrimPrefix(path, "/")
@@ -233,17 +232,17 @@ func (v *View) GetItems(ctx *iris.Context) {
 						pairs[k] = pairsNew[k]
 					}
 				} else {
-					log.Fatal(err.Error())
+					log.Error(err.Error())
 				}
 			}
 
 			ctx.JSON(iris.StatusOK, pairs)
 		} else {
-			log.Fatal(err.Error())
+			log.Error(err.Error())
 		}
 
 	} else {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
 	}
 }
 

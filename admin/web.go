@@ -61,6 +61,7 @@ func (w *WebServer) Start() {
 	//service static file
 	app.Get("/", view.ServeStatic)
 	app.Get("/static/*file", view.ServeStatic)
+	app.Get("/view/*file", view.ServeStatic)
 
 	//login
 	app.Post("/api/login", view.Login)
@@ -73,7 +74,6 @@ func (w *WebServer) Start() {
 	app.Post("/api/project/:projectName/items", jwtMDW.Serve, view.SetItem)
 	//tmpl
 	app.Get("/api/project/:projectName/tmpl/:filepath", jwtMDW.Serve, view.GetTemplates)
-	app.Get("/*file", view.ServeStatic)
 	app.Websocket.OnConnection(view.WebSocketHandle)
 
 	app.Listen(fmt.Sprintf(":%d", w.setting.Port))

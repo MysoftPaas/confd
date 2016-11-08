@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import auth from './auth'
 
 function httpErrorHandle (response) {
   console.log(response)
@@ -67,6 +68,7 @@ var http = {
   },
 
   post (path, data, successCallback, errorCallback) {
+    Vue.http.headers.common['Authorization'] = 'Bearer ' + auth.getToken()
     Vue.http.post(path, data).then(function (response) {
       successCallback(response)
     }, function (response) {
@@ -78,6 +80,7 @@ var http = {
   },
 
   delete (path, successCallback, errorCallback) {
+    Vue.http.headers.common['Authorization'] = 'Bearer ' + auth.getToken()
     Vue.http.delete(path).then(function (response) {
       successCallback(response)
     }, function (response) {
@@ -89,6 +92,7 @@ var http = {
   },
 
   get (path, successCallback, errorCallback) {
+    Vue.http.headers.common['Authorization'] = 'Bearer ' + auth.getToken()
     Vue.http.get(path).then(function (response) {
       successCallback(response)
     }, function (response) {
