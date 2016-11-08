@@ -28,6 +28,14 @@
 
 ```
 
+## 开发模式运行web admin
+
+```bash
+> cd admin/web
+> npm run dev
+
+```
+
 ## 运行示例(redis作为配置源)
 
 配置文件默认位置 `/etc/confd/confd.conf`, 项目文件默认位置 `/etc/confd/conf.d`
