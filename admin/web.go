@@ -61,6 +61,7 @@ func (w *WebServer) Start() {
 	//service static file
 	app.Get("/", view.ServeStatic)
 	app.Get("/static/*file", view.ServeStatic)
+	app.Get("/view/*file", view.ServeStatic)
 
 	//login
 	app.Post("/api/login", view.Login)
