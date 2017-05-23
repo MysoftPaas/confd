@@ -34,6 +34,8 @@ func init() {
 	log.SetFormatter(&ConfdFormatter{})
 }
 
+const LOG_CACHING_KEY = "/kelseyhightower/confd/logging"
+
 // SetTag sets the tag.
 func SetTag(t string) {
 	tag = t
@@ -50,25 +52,40 @@ func SetLevel(level string) {
 
 // Debug logs a message with severity DEBUG.
 func Debug(format string, v ...interface{}) {
-	log.Debug(fmt.Sprintf(format, v...))
+	text := fmt.Sprintf(format, v...)
+	ls := GetLogQueue()
+	ls.Set(text, log.DebugLevel.String())
+	log.Debug(text)
 }
 
 // Error logs a message with severity ERROR.
 func Error(format string, v ...interface{}) {
-	log.Error(fmt.Sprintf(format, v...))
+	text := fmt.Sprintf(format, v...)
+	ls := GetLogQueue()
+	ls.Set(text, log.ErrorLevel.String())
+	log.Error(text)
 }
 
 // Fatal logs a message with severity ERROR followed by a call to os.Exit().
 func Fatal(format string, v ...interface{}) {
-	log.Fatal(fmt.Sprintf(format, v...))
+	text := fmt.Sprintf(format, v...)
+	ls := GetLogQueue()
+	ls.Set(text, log.FatalLevel.String())
+	log.Fatal(text)
 }
 
 // Info logs a message with severity INFO.
 func Info(format string, v ...interface{}) {
-	log.Info(fmt.Sprintf(format, v...))
+	text := fmt.Sprintf(format, v...)
+	ls := GetLogQueue()
+	ls.Set(text, log.InfoLevel.String())
+	log.Info(text)
 }
 
 // Warning logs a message with severity WARNING.
 func Warning(format string, v ...interface{}) {
-	log.Warning(fmt.Sprintf(format, v...))
+	text := fmt.Sprintf(format, v...)
+	ls := GetLogQueue()
+	ls.Set(text, log.WarnLevel.String())
+	log.Warning(text)
 }

@@ -2,6 +2,7 @@ package rancher
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -118,6 +119,12 @@ func (c *Client) testConnection() error {
 	return err
 }
 
+func (c *Client) Set(key string, value string) error {
+	return errors.New("function not supported")
+}
+func (c *Client) Remove(key string) error {
+	return errors.New("function not supported")
+}
 func (c *Client) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	// Watches are not implemented in Rancher Metadata Service
 	<-stopChan

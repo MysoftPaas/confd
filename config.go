@@ -18,7 +18,7 @@ import (
 
 var (
 	configFile        = ""
-	defaultConfigFile = "/etc/confd/confd.toml"
+	defaultConfigFile = "/etc/confd/confd.conf"
 	authToken         string
 	authType          string
 	backend           string
@@ -48,33 +48,39 @@ var (
 	watch             bool
 	appID             string
 	userID            string
+	port              int
+	adminUsername     string
+	adminPassword     string
 )
 
 // A Config structure is used to configure confd.
 type Config struct {
-	AuthToken    string   `toml:"auth_token"`
-	AuthType     string   `toml:"auth_type"`
-	Backend      string   `toml:"backend"`
-	BasicAuth    bool     `toml:"basic_auth"`
-	BackendNodes []string `toml:"nodes"`
-	ClientCaKeys string   `toml:"client_cakeys"`
-	ClientCert   string   `toml:"client_cert"`
-	ClientKey    string   `toml:"client_key"`
-	ConfDir      string   `toml:"confdir"`
-	Interval     int      `toml:"interval"`
-	Noop         bool     `toml:"noop"`
-	Password     string   `toml:"password"`
-	Prefix       string   `toml:"prefix"`
-	SRVDomain    string   `toml:"srv_domain"`
-	SRVRecord    string   `toml:"srv_record"`
-	Scheme       string   `toml:"scheme"`
-	SyncOnly     bool     `toml:"sync-only"`
-	Table        string   `toml:"table"`
-	Username     string   `toml:"username"`
-	LogLevel     string   `toml:"log-level"`
-	Watch        bool     `toml:"watch"`
-	AppID        string   `toml:"app_id"`
-	UserID       string   `toml:"user_id"`
+	AuthToken     string   `toml:"auth_token"`
+	AuthType      string   `toml:"auth_type"`
+	Backend       string   `toml:"backend"`
+	BasicAuth     bool     `toml:"basic_auth"`
+	BackendNodes  []string `toml:"nodes"`
+	ClientCaKeys  string   `toml:"client_cakeys"`
+	ClientCert    string   `toml:"client_cert"`
+	ClientKey     string   `toml:"client_key"`
+	ConfDir       string   `toml:"confdir"`
+	Interval      int      `toml:"interval"`
+	Noop          bool     `toml:"noop"`
+	Password      string   `toml:"password"`
+	Prefix        string   `toml:"prefix"`
+	SRVDomain     string   `toml:"srv_domain"`
+	SRVRecord     string   `toml:"srv_record"`
+	Scheme        string   `toml:"scheme"`
+	SyncOnly      bool     `toml:"sync-only"`
+	Table         string   `toml:"table"`
+	Username      string   `toml:"username"`
+	LogLevel      string   `toml:"log-level"`
+	Watch         bool     `toml:"watch"`
+	AppID         string   `toml:"app_id"`
+	UserID        string   `toml:"user_id"`
+	Port          int      `toml:"port"`
+	AdminUsername string   `toml:"admin_username"`
+	AdminPassword string   `toml:"admin_password"`
 }
 
 func init() {
@@ -84,7 +90,7 @@ func init() {
 	flag.StringVar(&clientCaKeys, "client-ca-keys", "", "client ca keys")
 	flag.StringVar(&clientCert, "client-cert", "", "the client cert")
 	flag.StringVar(&clientKey, "client-key", "", "the client key")
-	flag.StringVar(&confdir, "confdir", "/etc/confd", "confd conf directory")
+	flag.StringVar(&confdir, "confdir", "/etc/confd/conf.d", "confd conf directory")
 	flag.StringVar(&configFile, "config-file", "", "the confd config file")
 	flag.IntVar(&interval, "interval", 600, "backend polling interval")
 	flag.BoolVar(&keepStageFile, "keep-stage-file", false, "keep staged files")
@@ -105,6 +111,9 @@ func init() {
 	flag.StringVar(&username, "username", "", "the username to authenticate as (only used with vault and etcd backends)")
 	flag.StringVar(&password, "password", "", "the password to authenticate with (only used with vault and etcd backends)")
 	flag.BoolVar(&watch, "watch", false, "enable watch support")
+	flag.IntVar(&port, "port", 1520, "the port of webServer")
+	flag.StringVar(&adminUsername, "admin-username", "admin", "username of admin")
+	flag.StringVar(&adminPassword, "admin-password", "admin", "username of admin")
 }
 
 // initConfig initializes the confd configuration by first setting defaults,
@@ -120,17 +129,20 @@ func initConfig() error {
 	}
 	// Set defaults.
 	config = Config{
-		Backend:  "etcd",
-		ConfDir:  "/etc/confd",
-		Interval: 600,
-		Prefix:   "",
-		Scheme:   "http",
+		Backend:       "etcd",
+		ConfDir:       "/etc/confd/conf.d",
+		Interval:      600,
+		Prefix:        "",
+		Scheme:        "http",
+		Port:          1520,
+		AdminUsername: "admin",
+		AdminPassword: "admin",
 	}
 	// Update config from the TOML configuration file.
 	if configFile == "" {
-		log.Debug("Skipping confd config file.")
+		log.Info("Skipping confd config file.")
 	} else {
-		log.Debug("Loading " + configFile)
+		log.Info("Loading " + configFile)
 		configBytes, err := ioutil.ReadFile(configFile)
 		if err != nil {
 			return err
@@ -315,5 +327,12 @@ func setConfigFromFlag(f *flag.Flag) {
 		config.AppID = appID
 	case "user-id":
 		config.UserID = userID
+	case "port":
+		config.Port = port
+	case "admin-username":
+		config.AdminUsername = adminUsername
+	case "admin-password":
+		config.AdminPassword = adminPassword
+
 	}
 }

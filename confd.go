@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/kelseyhightower/confd/admin"
 	"github.com/kelseyhightower/confd/backends"
 	"github.com/kelseyhightower/confd/log"
 	"github.com/kelseyhightower/confd/resource/template"
@@ -51,6 +52,15 @@ func main() {
 
 	go processor.Process()
 
+	log.Info("web port: %d", config.Port)
+	webConfig := admin.Setting{Port: config.Port, Username: config.AdminUsername, Password: config.AdminPassword, SecretKey: "$2@!!"}
+	ws := admin.New(templateConfig, webConfig)
+	go func() {
+		log.Debug("Start web server, listen: %d", config.Port)
+
+		ws.Start()
+	}()
+
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	for {
@@ -64,4 +74,5 @@ func main() {
 			os.Exit(0)
 		}
 	}
+
 }

@@ -20,6 +20,8 @@ import (
 // key/value pairs from a backend store.
 type StoreClient interface {
 	GetValues(keys []string) (map[string]string, error)
+	Set(key string, value string) error
+	Remove(key string) error
 	WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error)
 }
 

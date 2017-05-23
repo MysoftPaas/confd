@@ -25,7 +25,7 @@ func process(ts []*TemplateResource) error {
 	var lastErr error
 	for _, t := range ts {
 		if err := t.process(); err != nil {
-			log.Error(err.Error())
+			log.Error("process resource fail. src: %s, error: %s", t.Src, err.Error())
 			lastErr = err
 		}
 	}
@@ -125,37 +125,49 @@ func getTemplateResources(config Config) ([]*TemplateResource, error) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	for _, project := range projects {
-		tomlPath := filepath.Join(project.ConfDir, "conf.d")
-		templatePath := filepath.Join(project.ConfDir, "templates")
-		paths, err := recursiveFindFiles(tomlPath, "*toml")
 
+	for _, project := range projects {
+		tmplsOfProject, err := GetTemplateResourceByProject(project, config)
+		if tmplsOfProject != nil {
+			templates = append(templates, tmplsOfProject...)
+			lastError = err
+		}
+	}
+
+	return templates, lastError
+}
+
+func GetTemplateResourceByProject(project *Project, config Config) ([]*TemplateResource, error) {
+
+	templates := make([]*TemplateResource, 0)
+	tomlPath := filepath.Join(project.ConfDir, "conf.d")
+	templatePath := filepath.Join(project.ConfDir, "templates")
+	paths, err := recursiveFindFiles(tomlPath, "*toml")
+
+	if err != nil {
+		log.Warning(fmt.Sprintf("Cannot recursive file: %s, from: %s", err.Error(), project.ConfDir))
+		return nil, nil
+	}
+
+	if len(paths) < 1 {
+		log.Warning("Found no *toml in " + tomlPath)
+	}
+
+	var lastError error
+	for _, p := range paths {
+		log.Debug(fmt.Sprintf("Found project: %s", p))
+		t, err := NewTemplateResource(p, config, project)
 		if err != nil {
-			log.Warning(fmt.Sprintf("Cannot recursive file: %s, from: %s", err.Error(), project.ConfDir))
+			lastError = err
 			continue
 		}
 
-		if len(paths) < 1 {
-			log.Warning("Found no toml")
+		t.Src = filepath.Join(templatePath, t.Src)
+		// if is absolute path, or relative path
+		if !filepath.IsAbs(t.Dest) {
+			t.Dest = filepath.Join(project.ConfDir, t.Dest)
 		}
-
-		for _, p := range paths {
-			log.Debug(fmt.Sprintf("Found project: %s", p))
-			t, err := NewTemplateResource(p, config, project)
-			if err != nil {
-				lastError = err
-				continue
-			}
-
-			t.Src = filepath.Join(templatePath, t.Src)
-			// if is absolute path, or relative path
-			if !filepath.IsAbs(t.Dest) {
-				t.Dest = filepath.Join(project.ConfDir, t.Dest)
-			}
-			templates = append(templates, t)
-		}
-
+		templates = append(templates, t)
 	}
-
 	return templates, lastError
 }

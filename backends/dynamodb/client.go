@@ -1,6 +1,7 @@
 package dynamodb
 
 import (
+	"errors"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -102,6 +103,12 @@ func (c *Client) GetValues(keys []string) (map[string]string, error) {
 		}
 	}
 	return vars, nil
+}
+func (c *Client) Set(key string, value string) error {
+	return errors.New("function not supported")
+}
+func (c *Client) Remove(key string) error {
+	return errors.New("function not supported")
 }
 
 // WatchPrefix is not implemented

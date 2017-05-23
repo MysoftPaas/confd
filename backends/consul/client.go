@@ -3,6 +3,7 @@ package consul
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"path"
@@ -76,6 +77,12 @@ type watchResponse struct {
 	err       error
 }
 
+func (c *ConsulClient) Remove(key string) error {
+	return errors.New("function not supported")
+}
+func (c *ConsulClient) Set(key string, value string) error {
+	return errors.New("function not supported")
+}
 func (c *ConsulClient) WatchPrefix(prefix string, keys []string, waitIndex uint64, stopChan chan bool) (uint64, error) {
 	respChan := make(chan watchResponse)
 	go func() {

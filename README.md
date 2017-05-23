@@ -1,34 +1,85 @@
 # confd
 
-在[kelseyhightower/confd](https://github.com/kelseyhightower/confd)基础上做了些修改。  
-配置confd的运行和配置模板的编写隔离,当有新项目要引入confd配置体系，只需要往confd的运行配置文件夹里添加一个project的配置,
-后续该项目的配置文件迭代都不需再修改confd的运行配置。
+配置confd的运行和配置模板的编写隔离,当有新项目要引入confd配置体系，只需要往confd的运行配置文件夹里添加一个project的配置
 
 ## 改变的内容
 
 - 修改了配置文件位置, 引入了project的概念
-
 - redis 支持指定特定的database
+- WebUI admin
+- 增加参数
 
-## 运行示例
+```
+ - `port`           web port
+ - `admin-username` 登录用户名
+ - `admin-password` 登录帐号
+```
 
-- 使用redis作为配置源
+## 编译
 
-./bin/confd  -backend redis -interval 60 -confdir /etc/confd -node 127.0.0.1:6379/8 -client-key 123  
+```bash
+> cd admin/web
+> npm install
+> npm run build  
+> cd ../  
+> rm bindata.go  
+> go-bindata -pkg admin web/dist/... 
+> cd ../ && ./build
 
-**解释:** 以redis作为源, 同步周期为60秒, redis的连接host=127.0.0.1, port=6379, database=8, password=123
+```
 
-## 新的配置方式使用说明
+## 开发模式运行web admin
 
-### 1、confd的运行配置目录
+```bash
+> cd admin/web
+> npm run dev
 
-- 默认位置/etc/confd/, 也可以通过-confdir运行参数指定
+```
 
-当需要添加新的项目模板时，只需要在/etc/confd目录下添加项目模板toml配置文件,  
+## 运行示例(redis作为配置源)
+
+> ./bin/confd -config-file=/etc/confd/confd.conf -onetime
+
+`如果指定-onetime参数，则只运行一次即退出，否则作为服务运行`
+
+配置文件 `confd.conf`  
+
+```
+
+backend="redis"
+confdir="/etc/confd/conf.d"
+log-level="error"
+interval=60
+port=1520
+client_key="dev"
+admin_username="admin"
+admin_password="123"
+nodes=[
+  "127.0.0.1:6379/1",
+]
+
+```
+
+**配置项说明**  
+
+`backend`: 存储源类型  
+`confdir`: 项目资源配置文件目录  
+`log-level`: 日志级别  
+`interval`: 检查同步配置文件的时间间隔(秒)  
+`port`: Web 端口  
+`client_key`: redis 授权密码  
+`admin_username`: Web登录帐号  
+`admin_password`: web登录密码  
+`nodes`: backend 服务器地址, 上述配置值中使用redis的database为序号为1, 默认为0  
+
+## 项目配置文件说明
+
+- 新引入项目到confd, 需要在/etc/confd/conf.d/目录, 增加一个toml配置文件
+
 如下示例，有app1,app2,app3三个项目配置:  
 
 ```
-├── /etc/confd  
+├── /etc/confd/conf.d/
 │   ├── app1.toml  
 │   ├── app2.toml  
 │   ├── app3.toml  
@@ -42,7 +93,7 @@
 [project]
 name = appcloud
 
-#这里指定项目配置文件目录
+#这里指定项目的配置文件目录
 conf_dir = /opt/www/appcloud/protected/config/confd/
 
 ```
@@ -85,13 +136,134 @@ define('DB_PWD', '{{getv "/database/pwd" "123456"}}');
 
 ```
 
-### 2、redis
+## 部署为服务的方式运行
 
-如使用-node 127.0.0.1:6379/8, 指定序号为8的database
+新建文件/etc/init.d/confd
 
+```
+$ sudo chmod +x /etc/init.d/confd
+$ sudo chkconfig --add confd
+$ sudo chkconfig confd on
+$ sudo service confd start
 
-## TODO
+```
 
-- 集成web gui 管理配置
+confd文件内容
 
+```
 
+#!/bin/bash
+# source function library
+. /etc/rc.d/init.d/functions
+
+prog="confd"
+user="root"
+exec="/usr/local/bin/$prog"
+pidfile="/var/run/$prog.pid"
+lockfile="/var/lock/subsys/$prog"
+logfile="/var/log/$prog"
+conffile="/etc/confd/confd.conf"
+confdir="/etc/confd/confd.d"
+
+# pull in sysconfig settings
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+export GOMAXPROCS=${GOMAXPROCS:-2}
+
+start() {
+    [ -x $exec ] || exit 5
+    
+    [ -f $conffile ] || exit 6
+    [ -d $confdir ] || exit 6
+
+    umask 077
+
+    touch $logfile $pidfile
+    chown $user:$user $logfile $pidfile
+
+    echo -n $"Starting $prog: "
+    
+    ## holy shell shenanigans, batman!
+    ## daemon can't be backgrounded.  we need the pid of the spawned process,
+    ## which is actually done via runuser thanks to --user.  you can't do "cmd
+    ## &; action" but you can do "{cmd &}; action".
+    daemon \
+        --pidfile=$pidfile \
+        --user=$user \
+        " { $exec -config-file=$conffile -confdir=$confdir &>> $logfile & } ; echo \$! >| $pidfile "
+    
+    RETVAL=$?
+    echo
+    
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Shutting down $prog: "
+    ## graceful shutdown with SIGINT
+    killproc -p $pidfile $exec -INT
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    echo -n $"Reloading $prog: "
+    killproc -p $pidfile $exec -HUP
+    echo
+}
+
+force_reload() {
+    restart
+}
+
+rh_status() {
+    status -p "$pidfile" -l $prog $exec
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    reload)
+        rh_status_q || exit 7
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    status)
+        rh_status
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+        restart
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload}"
+        exit 2
+esac
+
+exit $?
+
+```
